@@ -38,7 +38,7 @@ public class RefreshService extends IntentService {
 			values.put( StreamContract.Columns.TITLE, post.getTitle() );
 			values.put( StreamContract.Columns.DESCRIPTION, post.getDescription() );
 			values.put( StreamContract.Columns.LINK, post.getLink().toString() );
-			values.put( StreamContract.Columns.PUB_DATE,  System.currentTimeMillis() );
+			values.put( StreamContract.Columns.PUB_DATE, post.getTimestamp() );
 			
 			// Insert into the content provider
 			getContentResolver().insert( StreamContract.CONTENT_URI, values);

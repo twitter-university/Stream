@@ -90,7 +90,7 @@ public class StreamProvider extends ContentProvider {
 		// Insert into db
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
 		long id = db.insertWithOnConflict(DbHelper.TABLE, null, values,
-				SQLiteDatabase.CONFLICT_IGNORE);
+				SQLiteDatabase.CONFLICT_REPLACE);
 
 		// Check if insert succeeded
 		if (id > 0) {

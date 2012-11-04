@@ -22,13 +22,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".PostActivity"
+            android:launchMode="singleTop"
+            android:exported="false" >
+        </activity>
 
         <service android:name=".RefreshService" >
         </service>
 
         <provider
             android:name=".StreamProvider"
-            android:authorities="com.marakana.android.stream.provider" />
+            android:authorities="com.marakana.android.stream.provider"
+            android:exported="false" />
+
     </application>
 
 </manifest>

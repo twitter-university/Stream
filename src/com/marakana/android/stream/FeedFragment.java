@@ -41,9 +41,7 @@ public class FeedFragment extends ListFragment {
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		Log.d(TAG, "onListItemClick'd for pos: " + position + " id: " + id);
-		PostFragment postFragment = (PostFragment) getFragmentManager()
-				.findFragmentById(R.id.fragment_post);
-		postFragment.updatePost(id);
+		((MainActivity)getActivity()).showPost(id);
 	}
 
 	// --- Loader Callbacks
