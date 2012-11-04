@@ -8,6 +8,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
   private Intent postActivityIntent;
+  private Intent refreshServiceIntent;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -15,6 +16,10 @@ public class MainActivity extends Activity {
     setContentView(R.layout.activity_main);
 
     postActivityIntent = new Intent(this, PostActivity.class);
+    refreshServiceIntent = new Intent(this, RefreshService.class);
+    
+    // Refresh the data
+    startService( refreshServiceIntent );
     
     // Setup the action bar
     getActionBar().setDisplayHomeAsUpEnabled(false); 
@@ -35,7 +40,7 @@ public class MainActivity extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
     case R.id.menu_refresh:
-      startService(new Intent(this, RefreshService.class));
+      startService( refreshServiceIntent );
       return true;
     default:
       return super.onOptionsItemSelected(item);

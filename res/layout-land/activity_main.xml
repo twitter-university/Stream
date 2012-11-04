@@ -3,19 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal" >
-    
+
     <fragment
         android:id="@+id/fragment_feed"
         android:name="com.marakana.android.stream.FeedFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_height="match_parent" />
 
-    <fragment
-        android:id="@+id/fragment_post"
-        android:name="com.marakana.android.stream.PostFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
-    
 </LinearLayout>
