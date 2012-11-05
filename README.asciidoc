@@ -1,10 +1,13 @@
 = About This Project
 
-This Android Eclipse project demonstrates how [not] to protect data in an Android application.
+This is the Marakana Stream app.
 
-This code was developed to support Marakana's Android Training courses.
+== Feature Request
 
-For more info, see http://marakana.com/training/android/
+* Star a post
+* Show thumbnails
+* Show post content, not just description
+
 
 == Legal
 
