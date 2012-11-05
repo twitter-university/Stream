@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <item android:id="@+id/menu_link"
-        android:icon="@android:drawable/ic_media_play" android:title="@string/open_link" android:titleCondensed="@string/open" android:showAsAction="always">
+    <item
+        android:id="@+id/menu_link"
+        android:icon="@android:drawable/ic_media_play"
+        android:showAsAction="always"
+        android:title="@string/open_link"
+        android:titleCondensed="@string/open">
+    </item>
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="@string/share" android:showAsAction="always">
     </item>
 
 </menu>

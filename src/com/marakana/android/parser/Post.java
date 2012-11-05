@@ -9,11 +9,21 @@ import java.util.Date;
 public class Post implements Comparable<Post>{
 	static SimpleDateFormat FORMATTER = 
 		new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+	private long id;
 	private String title;
 	private URL link;
 	private String description;
 	private Date date;
 
+	public Post() {}
+	public Post(long id) {
+	  this.id = id;
+	}
+	
+	public long getId() {
+	  return id;
+	}
+	
 	public String getTitle() {
 		return title;
 	}

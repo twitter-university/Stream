@@ -8,10 +8,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.marakana.android.parser.Post;
+
 public class PostActivity extends Activity {
   private static final String TAG = "Stream-PostActivity";
   private PostFragment postFragment;
-  private String link;
+  private Post post;
+  private long id;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +28,12 @@ public class PostActivity extends Activity {
     postFragment = (PostFragment) getFragmentManager().findFragmentById(
         R.id.fragment_post);
 
-    long id = getIntent().getLongExtra("com.marakana.android.stream.id", -1);
-    postFragment.updatePost(id);
+    this.id = getIntent().getLongExtra("com.marakana.android.stream.id", -1);
+    
+    post = PostHelper.getPost(this, this.id);
+    this.setTitle(post.getTitle());
+    postFragment.update(post);
+    
     Log.d(TAG, "Updated post for id: " + id);
   }
 
@@ -49,16 +56,17 @@ public class PostActivity extends Activity {
       finish();
       return true;
     case R.id.menu_link:
-      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.link));
+      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse( post.getLink().toString() ));
       startActivity(intent);
-
       return true;
+    case R.id.menu_share:
+      Intent share = new Intent(Intent.ACTION_SEND);
+      share.setType("text/plain");
+      share.putExtra(Intent.EXTRA_SUBJECT, post.getTitle() );
+      share.putExtra(Intent.EXTRA_TEXT, post.getTitle() + ": " +post.getLink());
+      startActivity(Intent.createChooser(share, "Share this post"));
     }
     return super.onOptionsItemSelected(item);
-  }
-
-  public void setLink(String link) {
-    this.link = link;
   }
 
 }
