@@ -7,6 +7,9 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextPaint;
+import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -17,11 +20,13 @@ import android.widget.TextView;
 public class FeedFragment extends ListFragment {
   private static final String TAG = "Stream-FeedFragment";
   private static final String[] FROM = { StreamContract.Columns.TITLE,
-      StreamContract.Columns.DESCRIPTION };
-  private static final int[] TO = { R.id.text_title, R.id.text_description };
+      StreamContract.Columns.DESCRIPTION, StreamContract.Columns.PUB_DATE };
+  private static final int[] TO = { R.id.text_title, R.id.text_description,
+      R.id.text_date };
   private static final int LOADER_ID = 47;
   private static final String MIME_TYPE = "text/html";
   private static final String ENCODING = "utf-8";
+  private static final int DESCRIPTION_MAX_LENGTH = 1024;
 
   private SimpleCursorAdapter adapter;
 
@@ -75,16 +80,19 @@ public class FeedFragment extends ListFragment {
 
     @Override
     public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-      if (view.getId() != R.id.text_description)
+      switch (view.getId()) {
+      case R.id.text_description:
+        String description = cursor.getString(columnIndex);
+        ((TextView) view).setText( Html.fromHtml(description).toString() );
+        return true;
+      case R.id.text_date:
+        long timestamp = cursor.getLong(columnIndex);
+        ((TextView) view).setText(DateUtils
+            .getRelativeTimeSpanString(timestamp));
+        return true;
+      default:
         return false;
-      
-      String description = cursor.getString(columnIndex);
-//      WebView webView = ((WebView)view);
-//      webView.loadData(description, MIME_TYPE, ENCODING);
-      TextView textView = (TextView)view;
-      textView.setText( Html.fromHtml(description) );
-      
-      return true;
+      }
     }
 
   };

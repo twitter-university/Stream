@@ -1,6 +1,14 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_refresh" android:title="@string/refresh_data"></item><item android:id="@+id/menu_settings"
-        android:title="@string/menu_settings"
-        android:showAsAction="never" />
-    
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_refresh"
+        android:title="@string/refresh_data"
+        android:icon="@android:drawable/ic_menu_rotate"
+        android:showAsAction="always">
+    </item>
+    <item
+        android:id="@+id/menu_settings"
+        android:showAsAction="never"
+        android:title="@string/menu_settings"/>
+
 </menu>
