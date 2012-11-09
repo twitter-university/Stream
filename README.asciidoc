@@ -131,13 +131,28 @@ For example:
 http://marakana.com/s?publishedSince=2012-11-08T17:52:16-0800
 ----
 
-TIP: We can also format timestamps as UNIX epoch value (milliseconds since midnight, January 1, 1970 UTC), by appending ++.millis++ to the parameter name (e.g. ++publishedSince.millis=1352425936020++).
+We can also format timestamps as UNIX/Posix epoch value (expressed as _milliseconds_ since midnight, January 1, 1970 UTC), by appending ++.millis++ to the parameter name.
 
-The resulting feed will also contain the requested filter:
+For example:
+----
+http://marakana.com/s?publishedSince.millis=1352425936020
+----
 
+If we set the ++publishedSince[.millis]++ parameter, the resulting feed will include ++<feed>++ -> ++<mrkn:published-since>++ element formatted as http://tools.ietf.org/html/rfc3339[RFC3339] timestamp.
+  
+For example:
 ----
 <mrkn:published-since>2012-11-08T17:52:16-0800</mrkn:published-since>
 ----
+
+If we set the ++updatedSince[.millis]++ parameter, the resulting feed will include ++<feed>++ -> ++<mrkn:updated-since>++ element formatted as http://tools.ietf.org/html/rfc3339[RFC3339] timestamp.
+  
+For example:
+----
+<mrkn:updated-since>2012-11-08T17:52:16-0800</mrkn:updated-since>
+----
+
+NOTE: Time filters can only be used when getting all posts, posts by tags, and posts by author. They are not applied when getting posts by parent posts or when getting comments.
 
 
 === Processing Feeds
@@ -157,6 +172,30 @@ NOTE: The ++<link rel="next" … />++ will be included only if there is more con
 
 TIP: In addition to ++<link rel="next" … />++, the API also provides ++<link rel="first" … />++, ++<link rel="prev" … />++, and ++<link rel="last" … />++.
 
+
+Feeds are rendered as ++<feed>++ elements with the following properties:
+
+* ++<author>++ -> ++<name>++, ++<uri>++ - The name of and the link to the author that was used to filter the entries in this feed (optional)
+* ++<category …>++ -> ++@term++ - A category for each tag that was used to filter the entries in this feed (optional)
+* ++<generator uri="http://marakana.com" version="1.0">++ - ++"Marakana Spark"++
+* ++<id>++ - The URL that was used to generate this feed
+* ++<link ref="self" … >++ -> ++@href++ - The canonical URL to this feed
+* ++<link ref="first" … >++ -> ++@href++ - The first page to this feed (optional)
+* ++<link ref="prev" … >++ -> ++@href++ - The previous page to this feed (optional)
+* ++<link ref="next" … >++ -> ++@href++ - The next page to this feed (optional)
+* ++<link ref="last" … >++ -> ++@href++ - The last page to this feed (optional)
+* ++<link ref="avatar" … >++ -> ++@href++ - The URL to the author photo (optional)
+* ++<link rel="up" type="application/atom+xml" … >++ -> ++@href++ - The URL to the parent post (optional)
+* ++<rights>++ - The copyright information
+* ++<updated>++ - The last updated timestamp formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<title format="…">++ - The title of this feed:
+** `"Marakana - Stream Posts"` - for the main feed
+** `"Marakana - Stream Posts tagged as {tags}"` - for posts filtered by tags
+** `"Marakana - Stream Posts authored by {author-name}"` - for posts filtered by author
+** `"{stream-post-title} - Nested Posts"` - for nested posts
+** `"{stream-post-title} - Comments"` - for comments
+* ++<entry>++ - An entry for each post/comment (see below)
+  
 
 === Getting Individual (Complete) Posts
 
@@ -190,6 +229,7 @@ Stream posts are rendered as ++<entry>++ elements with the following properties:
 * ++<link ref="icon" … >++ -> ++@href++ - The URL to the thumbnail of this post (optional)
 * ++<link ref="http://marakana.com/ns/rel/1.0/posts" … >++ -> ++@href++ - The URL to nested posts feed of this post (optional)
 * ++<link ref="http://marakana.com/ns/rel/1.0/comments" … >++ -> ++@href++ - The URL to comments feed of this post (optional)
+* ++<link rel="up" type="application/atom+xml" … >++ -> ++@href++ - The URL to the parent post (optional)
 * ++<published>++ - The published timestamp formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
 * ++<summary format="…">++ - The summary of this posts' content formatted as per ++@format++ (only available if this post was requested as part of a feed)
 * ++<title format="…">++ - The title of this post formatted as per ++@format++
@@ -198,8 +238,17 @@ Stream posts are rendered as ++<entry>++ elements with the following properties:
 * ++<mrkn:number-of-comments>++ - The number of comments in this stream post
 * ++<mrkn:number-of-stream-posts>++ - The number of nested stream posts
 
+=== Processing Comments
 
-=== Processing Entries
+Stream post comments are rendered as ++<entry>++ elements with the following properties:
+
+* ++<author>++ -> ++<name>++, ++<uri>++ - The name of and the link to the author of this comment
+* ++<content format="…">++ - The full content of this comment formatted as per ++@format++
+* ++<id>++ - This value is in the following format: `tag:marakana.com,{comment-created-date}:stream:post:comment:{comment-id}`
+* ++<published>++ - The timestamp of when this comment was submitted formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<title format="…">++ - `"Comment to {post-title}"` in  ++@format++
+* ++<updated>++ - Same as ++<published>++
+
 
 == Feature Request
 
