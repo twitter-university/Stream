@@ -25,7 +25,14 @@ public class RefreshService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		List<Post> posts = parser.parse();
+		List<Post> posts;
+    try {
+      posts = parser.parse();
+    } catch (Exception e) {
+      e.printStackTrace();
+      Log.e(TAG, "Failed to parse: "+FEED_URL);
+      return;
+    }
 		
 		if(posts==null) {
 			Log.d(TAG, "No posts from feed: "+FEED_URL);
