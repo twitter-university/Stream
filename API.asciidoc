@@ -1,0 +1,249 @@
+= Marakana Stream API
+
+Marakana offers a server-side API for getting data from the Stream, which is based on http://tools.ietf.org/html/rfc4287[Atom 1.0], although http://cyber.law.harvard.edu/rss/rss.html[RSS 2.0] is also supported.
+
+All requests SHOULD include ++Accept: application/atom+xml++ request header, although they MAY also append ++.atom++ extension (not recommended) to the URLs described below.
+
+TIP: For RSS, use ++Accept: application/rss+xml++ request header, or append ++.rss++ extension to the URLs.
+
+WARNING: The server defaults to returning responses formatted as ++text/html++.
+
+== Getting Posts
+
+The starting point for accessing the stream is the following URL:
+
+----
+http://marakana.com/s
+----
+
+NOTE: There is no trailing slash.
+
+We can also narrow down the set of stream posts by filtering them by:
+
+* Author
+* Tags
+* Parent Post
+* Published/updated date
+
+We can also get comments in the similar way
+
+== Getting Posts By Author
+
+To get the stream posts by author, we use the following URL template:
+
+----
+http://marakana.com/s/author/{author-id}{author-name}
+----
+
+[NOTE]
+======
+In this URL, the `{author-id}` is the database identifier (a long integer) unique to each author. 
+The `{author-name}` is the full name of the author (first, followed by last), lower-spaced with each space-character represented with an underscore. 
+
+For example: ++http://marakana.com/s/author/16548/thomas_martinez++.
+
+The resulting feed will include the author information as ++<feed>++ -> ++<author>++ -> ++<name>++, ++<uri>++.
+======
+
+TIP: This URL SHOULD be extracted from the actual entries: ++<feed>++ -> ++<entry>++ -> ++<author>++ -> ++<uri>++.
+
+== Getting Posts By Tags
+
+To get posts by tags, we use the following URL template:
+
+----
+http://marakana.com/s/tags/{tags}
+----
+
+[NOTE]
+======
+In this URL, the `{tags}` is a sorted comma-separated list of unique tag names, where each name is lower-spaced with any space-characters represented with underscores.
+
+For example: ++http://marakana.com/s/tags/android,techtv,tutorial++.
+
+The resulting feed will include those tags as ++<feed>++ -> ++<category>++ -> ++@term++.
+======
+
+TIP: The tag names can be extracted from the actual entries: ++<feed>++ -> ++<entry>++ -> ++<category>++ -> ++@term++.
+
+WARNING: We need to be prepared to deal with ++301 Moved Permanently++ server responses, especially if we request a list of tags that have not been sorted.
+
+== Getting Posts By Parent Post
+
+Since stream posts can be organized into a hierarchy (a post can have a parent post), we can get the feed of nested (child) posts via the following URL:
+
+----
+http://marakana.com/s/post/{post-id}/{post-path}/posts
+----
+
+[NOTE]
+======
+In this URL, the `{post-id}` is the database identifier (a long integer) unique to each post. 
+The `{post-path}` is a unique string (containing only alphanumeric, '_', and '-' characters).
+
+For example: ++http://marakana.com/s/post/1017/android_bootcamp_series_2012_video_tutorial/posts++.
+======
+
+[TIP]
+=====
+This URL SHOULD be extracted from the parent post as ++<feed>++ -> ++<entry>++ -> ++<link rel="http://marakana.com/ns/rel/1.0/stream-posts" …>++ -> ++@href++.
+
+If this link does not exist, the post does not have nested posts.
+=====
+
+== Getting Comments By Parent Post
+
+Since stream posts can have comments, we can get the feed of those comments via the following URL:
+
+----
+http://marakana.com/s/post/{post-id}/{post-path}/comments
+----
+
+[NOTE]
+======
+In this URL, the `{post-id}` is the database identifier (a long integer) unique to each post. 
+The `{post-path}` is a unique string (containing only alphanumeric, '_', and '-' characters).
+
+For example: ++http://marakana.com/s/post/1017/android_bootcamp_series_2012_video_tutorial/comments++.
+======
+
+[TIP]
+=====
+This URL SHOULD be extracted from the parent post as ++<feed>++ -> ++<entry>++ -> ++<link rel="http://marakana.com/ns/rel/1.0/comments" …>++ -> ++@href++.
+
+If this link does not exist, the post does not have comments.
+=====
+
+== Filtering Posts by Date
+
+To get posts _published_ since a certain date, we can supply the `publishedSince={timestamp}` request parameter.
+
+To get posts _updated_ since a certain date, we can supply the `updatedSince={timestamp}` request parameter.
+
+The timestamp is in http://tools.ietf.org/html/rfc3339[RFC3339] format.
+
+For example:
+----
+http://marakana.com/s?publishedSince=2012-11-08T17:52:16-0800
+----
+
+We can also format timestamps as UNIX/Posix epoch value (expressed as _milliseconds_ since midnight, January 1, 1970 UTC), by appending ++.millis++ to the parameter name.
+
+For example:
+----
+http://marakana.com/s?publishedSince.millis=1352425936020
+----
+
+If we set the ++publishedSince[.millis]++ parameter, the resulting feed will include ++<feed>++ -> ++<mrkn:published-since>++ element formatted as http://tools.ietf.org/html/rfc3339[RFC3339] timestamp.
+  
+For example:
+----
+<mrkn:published-since>2012-11-08T17:52:16-0800</mrkn:published-since>
+----
+
+If we set the ++updatedSince[.millis]++ parameter, the resulting feed will include ++<feed>++ -> ++<mrkn:updated-since>++ element formatted as http://tools.ietf.org/html/rfc3339[RFC3339] timestamp.
+  
+For example:
+----
+<mrkn:updated-since>2012-11-08T17:52:16-0800</mrkn:updated-since>
+----
+
+NOTE: Time filters can only be used when getting all posts, posts by tags, and posts by author. They are not applied when getting posts by parent posts or when getting comments.
+
+
+== Processing Feeds
+
+All requests for feeds will return a single Atom ++<feed>++ with a nested ++<entry>++ element for each stream post that matches the optional filter (author, tags, nested, comments), up to the maximum _page size_.
+
+The API does not allow us to control the page size, but enables us to paginate through the entire list of responses by following ++<feed>++ -> ++<link rel="next" … >++ -> ++@href++.
+
+For example, accessing ++http://marakana.com/s/tags/android,techtv,tutorial++ MAY include the following _next_ link:
+
+[source,xml]
+----
+<link rel="next" type="application/rss+xml" href="http://marakana.com/s/tags/android,techtv,tutorial?page=2"/>
+----
+
+NOTE: The ++<link rel="next" … />++ will be included only if there is more content to access. If it's missing, it means that we have reached the end of this feed.
+
+TIP: In addition to ++<link rel="next" … />++, the API also provides ++<link rel="first" … />++, ++<link rel="prev" … />++, and ++<link rel="last" … />++.
+
+
+Feeds are rendered as ++<feed>++ elements with the following properties:
+
+* ++<author>++ -> ++<name>++, ++<uri>++ - The name of and the link to the author that was used to filter the entries in this feed (optional)
+* ++<category …>++ -> ++@term++ - A category for each tag that was used to filter the entries in this feed (optional)
+* ++<generator uri="http://marakana.com" version="1.0">++ - ++"Marakana Spark"++
+* ++<id>++ - The URL that was used to generate this feed
+* ++<link ref="self" … >++ -> ++@href++ - The canonical URL to this feed
+* ++<link ref="first" … >++ -> ++@href++ - The first page to this feed (optional)
+* ++<link ref="prev" … >++ -> ++@href++ - The previous page to this feed (optional)
+* ++<link ref="next" … >++ -> ++@href++ - The next page to this feed (optional)
+* ++<link ref="last" … >++ -> ++@href++ - The last page to this feed (optional)
+* ++<link ref="avatar" … >++ -> ++@href++ - The URL to the author photo (optional)
+* ++<link rel="up" type="application/atom+xml" … >++ -> ++@href++ - The URL to the parent post (optional)
+* ++<rights>++ - The copyright information
+* ++<updated>++ - The last updated timestamp formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<title format="…">++ - The title of this feed:
+** `"Marakana - Stream Posts"` - for the main feed
+** `"Marakana - Stream Posts tagged as {tags}"` - for posts filtered by tags
+** `"Marakana - Stream Posts authored by {author-name}"` - for posts filtered by author
+** `"{stream-post-title} - Nested Posts"` - for nested posts
+** `"{stream-post-title} - Comments"` - for comments
+* ++<entry>++ - An entry for each post/comment (see below)
+  
+
+== Getting Individual (Complete) Posts
+
+When requesting feeds, the returned ++<entry>-s++ will only include the shorter ++<summary>++ information, but not the complete ++<content>++.
+  
+To get the entire entry (with the complete ++<content>++), we need to request it directly via the following URL: 
+
+----
+http://marakana.com/s/post/{post-id}/{post-path}
+----
+
+[NOTE]
+======
+In this URL, the `{post-id}` is the database identifier (a long integer) unique to each post. 
+The `{post-path}` is a unique string (containing only alphanumeric, '_', and '-' characters).
+
+For example: ++http://marakana.com/s/post/1017/android_bootcamp_series_2012_video_tutorial++.
+======
+
+TIP: This URL SHOULD be extracted from feed: ++<feed>++ -> ++<entry>++ -> ++<link ref="self">++ -> ++@href++.
+  
+== Processing Posts
+
+Stream posts are rendered as ++<entry>++ elements with the following properties:
+
+* ++<author>++ -> ++<name>++, ++<uri>++ - The name of and the link to the author of this post
+* ++<category …>++ -> ++@term++ - A tag for this post (zero or more)  
+* ++<content format="…">++ - The full content of this post formatted as per ++@format++ (only available if this post was requested directly)
+* ++<id>++ - This value is in the following format: `tag:marakana.com,{post-created-date}:stream:post:{post-id}`
+* ++<link ref="self" … >++ -> ++@href++ - The canonical URL to this entry
+* ++<link ref="icon" … >++ -> ++@href++ - The URL to the thumbnail of this post (optional)
+* ++<link ref="http://marakana.com/ns/rel/1.0/posts" … >++ -> ++@href++ - The URL to nested posts feed of this post (optional)
+* ++<link ref="http://marakana.com/ns/rel/1.0/comments" … >++ -> ++@href++ - The URL to comments feed of this post (optional)
+* ++<link rel="up" type="application/atom+xml" … >++ -> ++@href++ - The URL to the parent post (optional)
+* ++<published>++ - The published timestamp formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<summary format="…">++ - The summary of this posts' content formatted as per ++@format++ (only available if this post was requested as part of a feed)
+* ++<title format="…">++ - The title of this post formatted as per ++@format++
+* ++<updated>++ - The last updated timestamp formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<mrkn:number-of-views>++ - The number of times this post has been seen
+* ++<mrkn:number-of-comments>++ - The number of comments in this stream post
+* ++<mrkn:number-of-stream-posts>++ - The number of nested stream posts
+
+== Processing Comments
+
+Stream post comments are rendered as ++<entry>++ elements with the following properties:
+
+* ++<author>++ -> ++<name>++, ++<uri>++ - The name of and the link to the author of this comment
+* ++<content format="…">++ - The full content of this comment formatted as per ++@format++
+* ++<id>++ - This value is in the following format: `tag:marakana.com,{comment-created-date}:stream:post:comment:{comment-id}`
+* ++<published>++ - The timestamp of when this comment was submitted formatted as per http://tools.ietf.org/html/rfc3339[RFC3339]
+* ++<title format="…">++ - `"Comment to {post-title}"` in  ++@format++
+* ++<updated>++ - Same as ++<published>++
+
+
+Copyright © 2012 Marakana Inc.
