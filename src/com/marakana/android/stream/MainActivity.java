@@ -6,45 +6,55 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.marakana.android.stream.svc.RefreshService;
+
+
+/**
+ * MainActivity
+ */
 public class MainActivity extends Activity {
-  private Intent postActivityIntent;
-  private Intent refreshServiceIntent;
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+    private ActionBarMgr actionBarMgr;
 
-    postActivityIntent = new Intent(this, PostActivity.class);
-    refreshServiceIntent = new Intent(this, RefreshService.class);
-    
-    // Refresh the data
-    startService( refreshServiceIntent );
-    
-    // Setup the action bar
-    getActionBar().setDisplayHomeAsUpEnabled(false); 
-  }
+    /**
+     * @see android.app.Activity#onCreate(android.os.Bundle)
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-  public void showPost(long id) {
-    postActivityIntent.putExtra("com.marakana.android.stream.id", id);
-    startActivity(postActivityIntent);
-  }
+        // Setup the action bar
+        getActionBar().setDisplayHomeAsUpEnabled(false);
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.activity_main, menu);
-    return true;
-  }
+        // Refresh the data
+        RefreshService.pollOnce(this);
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-    case R.id.menu_refresh:
-      startService( refreshServiceIntent );
-      return true;
-    default:
-      return super.onOptionsItemSelected(item);
+        actionBarMgr = new ActionBarMgr(this, true);
     }
-  }
 
+    /**
+     * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return actionBarMgr.onCreateOptionsMenu(R.menu.activity_main, menu);
+    }
+
+    /**
+     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarMgr.onOptionsItemSelected(item);
+    }
+
+    /**
+     * @param id
+     */
+    public void showPost(long id) {
+        Intent i = new Intent(this, PostActivity.class);
+        i.putExtra(PostActivity.KEY_ID, id);
+        startActivity(i);
+    }
 }

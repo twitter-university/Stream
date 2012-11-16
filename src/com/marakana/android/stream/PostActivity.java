@@ -1,8 +1,6 @@
 package com.marakana.android.stream;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -10,63 +8,56 @@ import android.view.MenuItem;
 
 import com.marakana.android.parser.Post;
 
+/**
+ * PostActivity
+ */
 public class PostActivity extends Activity {
-  private static final String TAG = "Stream-PostActivity";
-  private PostFragment postFragment;
-  private Post post;
-  private long id;
+    /** intent key for id parameter */
+    public static final String KEY_ID = "com.marakana.android.stream.ID";
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_post);
+    private static final String TAG = "Stream-PostActivity";
 
-    // Setup the action bar
-    getActionBar().setDisplayHomeAsUpEnabled(true);
+    private ActionBarMgr actionBarMgr;
+    private PostFragment postFragment;
+    private Post post;
+    private long id;
 
-    // Setup the post fragment
-    postFragment = (PostFragment) getFragmentManager().findFragmentById(
-        R.id.fragment_post);
+    /**
+     * @see android.app.Activity#onCreate(android.os.Bundle)
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_post);
 
-    this.id = getIntent().getLongExtra("com.marakana.android.stream.id", -1);
-    
-    post = PostHelper.getPost(this, this.id);
-    this.setTitle(post.getTitle());
-    postFragment.update(post);
-    
-    Log.d(TAG, "Updated post for id: " + id);
-  }
+        // Setup the action bar
+        actionBarMgr = new ActionBarMgr(this, true);
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.activity_post, menu);
-    return true;
-  }
+        id = getIntent().getLongExtra(KEY_ID, -1);
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-    case android.R.id.home:
-      // This is called when the Home (Up) button is pressed
-      // in the Action Bar.
-      Intent parentActivityIntent = new Intent(this, MainActivity.class);
-      parentActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-          | Intent.FLAG_ACTIVITY_NEW_TASK);
-      startActivity(parentActivityIntent);
-      finish();
-      return true;
-    case R.id.menu_link:
-      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse( post.getLink().toString() ));
-      startActivity(intent);
-      return true;
-    case R.id.menu_share:
-      Intent share = new Intent(Intent.ACTION_SEND);
-      share.setType("text/plain");
-      share.putExtra(Intent.EXTRA_SUBJECT, post.getTitle() );
-      share.putExtra(Intent.EXTRA_TEXT, post.getTitle() + ": " +post.getLink());
-      startActivity(Intent.createChooser(share, "Share this post"));
+        post = PostHelper.getPost(this, id);
+        setTitle(post.getTitle());
+
+        // Setup the post fragment
+        postFragment = (PostFragment) getFragmentManager().findFragmentById(R.id.fragment_post);
+        postFragment.update(post);
+
+        Log.d(TAG, "Updated post for id: " + id);
     }
-    return super.onOptionsItemSelected(item);
-  }
 
+    /**
+     * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return actionBarMgr.onCreateOptionsMenu(R.menu.activity_post, menu);
+    }
+
+    /**
+     * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return actionBarMgr.onOptionsItemSelected(item);
+    }
 }

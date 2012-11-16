@@ -4,12 +4,13 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
-        android:targetSdkVersion="15" />
+        android:minSdkVersion="14"
+        android:targetSdkVersion="16" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
@@ -24,8 +25,8 @@
         </activity>
         <activity
             android:name=".PostActivity"
-            android:launchMode="singleTop"
-            android:exported="false" >
+            android:exported="false"
+            android:launchMode="singleTop" >
         </activity>
 
         <service android:name=".RefreshService" >
@@ -35,7 +36,6 @@
             android:name=".StreamProvider"
             android:authorities="com.marakana.android.stream.provider"
             android:exported="false" />
-
     </application>
 
 </manifest>
