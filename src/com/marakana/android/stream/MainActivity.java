@@ -46,7 +46,9 @@ public class MainActivity extends Activity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return actionBarMgr.onOptionsItemSelected(item);
+        return (actionBarMgr.onOptionsItemSelected(item))
+            ? true
+            : super.onOptionsItemSelected(item);
     }
 
     /**

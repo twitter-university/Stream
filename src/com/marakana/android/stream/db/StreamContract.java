@@ -49,8 +49,6 @@ public final class StreamContract {
             public static final String AUTHOR = "author";
             /** article publication data */
             public static final String PUB_DATE = "pub_date";
-            /** article category */
-            public static final String CATEGORY = "category";
             /** article description */
             public static final String DESC = "description";
         }

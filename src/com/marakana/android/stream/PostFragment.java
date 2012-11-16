@@ -1,4 +1,3 @@
-
 package com.marakana.android.stream;
 
 import android.annotation.SuppressLint;
@@ -12,6 +11,7 @@ import android.webkit.WebViewFragment;
 
 import com.marakana.android.parser.Post;
 
+
 /**
  * PostFragment
  */
@@ -21,16 +21,16 @@ public class PostFragment extends WebViewFragment {
     private static final String ENCODING = "utf-8";
     private static final String PREFIX = "<html><body>\n";
     private static final String STYLE = "<style type=\"text/css\">p {font-size:1.1em;}</style>";
-    private static final String SUFIX = "\n</body></html>";
+    private static final String SUFFIX = "\n</body></html>";
 
 
     private final WebViewClient webviewClient = new WebViewClient() {
-
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             // If it's one of our pages, load it within our app
             if (Uri.parse(url).getHost().equals("marakana.com")
-                || Uri.parse(url).getHost().equals("mrkn.co")) {
+                || Uri.parse(url).getHost().equals("mrkn.co"))
+            {
                 return false;
             }
 
@@ -48,6 +48,7 @@ public class PostFragment extends WebViewFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
         getWebView().setWebViewClient(webviewClient);
 
         // Enable JavaScript
@@ -71,10 +72,11 @@ public class PostFragment extends WebViewFragment {
      * Gets the post with the given ID and displays it.
      */
     public void update(Post post) {
-        String content = "<p>No data for this post.</p>";
-        if (post != null) { content = post.getDescription(); }
+        StringBuilder content = new StringBuilder(PREFIX).append(STYLE);
+        content.append((null == post) ? "<p>Empty post.</p>" : post.getDescription());
+        content.append(SUFFIX);
 
         // Update the webview
-        getWebView() .loadData(PREFIX + STYLE + content + SUFIX, MIME_TYPE, ENCODING);
+        getWebView().loadData(content.toString(), MIME_TYPE, ENCODING);
     }
 }

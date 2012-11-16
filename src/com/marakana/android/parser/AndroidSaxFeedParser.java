@@ -9,49 +9,59 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.util.Xml;
 
-public class AndroidSaxFeedParser extends BaseFeedParser {
 
-	static final String RSS = "rss";
-	public AndroidSaxFeedParser(String feedUrl) {
-		super(feedUrl);
-	}
+/**
+ * AndroidSaxFeedParser
+ */
+public class AndroidSaxFeedParser extends FeedParser {
+    private static final String RSS = "rss";
 
-	public List<Post> parse() {
-		final Post currentMessage = new Post();
-		RootElement root = new RootElement(RSS);
-		final List<Post> messages = new ArrayList<Post>();
-		Element channel = root.getChild(CHANNEL);
-		Element item = channel.getChild(ITEM);
-		item.setEndElementListener(new EndElementListener(){
-			public void end() {
-				messages.add(currentMessage.copy());
-			}
-		});
-		item.getChild(TITLE).setEndTextElementListener(new EndTextElementListener(){
-			public void end(String body) {
-				currentMessage.setTitle(body);
-			}
-		});
-		item.getChild(LINK).setEndTextElementListener(new EndTextElementListener(){
-			public void end(String body) {
-				currentMessage.setLink(body);
-			}
-		});
-		item.getChild(DESCRIPTION).setEndTextElementListener(new EndTextElementListener(){
-			public void end(String body) {
-				currentMessage.setDescription(body);
-			}
-		});
-		item.getChild(PUB_DATE).setEndTextElementListener(new EndTextElementListener(){
-			public void end(String body) {
-				currentMessage.setDate(body);
-			}
-		});
-		try {
-			Xml.parse(this.getInputStream(), Xml.Encoding.UTF_8, root.getContentHandler());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return messages;
-	}
+    /**
+     * @param feedUrl
+     */
+    public AndroidSaxFeedParser(String feedUrl) {
+        super(feedUrl);
+    }
+
+    /**
+     * @see com.marakana.android.parser.FeedParser#parse()
+     */
+    @Override
+    public List<Post> parse() {
+        final List<Post> messages = new ArrayList<Post>();
+        final Post currentMessage = new Post();
+        RootElement root = new RootElement(RSS);
+        Element channel = root.getChild(CHANNEL);
+        Element item = channel.getChild(ITEM);
+
+        item.setEndElementListener(new EndElementListener() {
+            @Override public void end() { messages.add(new Post(currentMessage)); }
+        });
+
+        item.getChild(TITLE).setEndTextElementListener(
+            new EndTextElementListener() {
+                @Override public void end(String body) { currentMessage.setTitle(body); }
+            });
+
+        item.getChild(LINK).setEndTextElementListener(
+            new EndTextElementListener() {
+                @Override public void end(String body) { currentMessage.setLink(body); }
+            });
+
+        item.getChild(DESCRIPTION).setEndTextElementListener(
+            new EndTextElementListener() {
+                @Override public void end(String body) { currentMessage.setDescription(body); }
+            });
+
+        item.getChild(PUB_DATE).setEndTextElementListener(
+            new EndTextElementListener() {
+                @Override public void end(String body) { currentMessage.setDate(body); }
+            });
+
+        try {
+            Xml.parse(getInputStream(), Xml.Encoding.UTF_8, root.getContentHandler());
+            return messages;
+        }
+        catch (Exception e) { throw new RuntimeException(e); }
+    }
 }

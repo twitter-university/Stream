@@ -9,6 +9,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -31,10 +32,10 @@ public class StreamProvider extends ContentProvider {
     static {
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE, FEED_ITEM);
+            StreamContract.Feed.TABLE, FEED_DIR);
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE + "/#", FEED_DIR);
+            StreamContract.Feed.TABLE + "/#", FEED_ITEM);
     }
 
     private static final Map<String, ColumnDef> FEED_COL_MAP;
@@ -55,9 +56,6 @@ public class StreamProvider extends ContentProvider {
         m.put(
             StreamContract.Feed.Columns.PUB_DATE,
             new ColumnDef(DbHelper.COL_PUB_DATE, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Feed.Columns.CATEGORY,
-            new ColumnDef(DbHelper.COL_CATEGORY, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Feed.Columns.DESC,
             new ColumnDef(DbHelper.COL_DESC, ColumnDef.Type.STRING));
@@ -82,9 +80,6 @@ public class StreamProvider extends ContentProvider {
         m.put(
             StreamContract.Feed.Columns.PUB_DATE,
             DbHelper.COL_PUB_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
-        m.put(
-            StreamContract.Feed.Columns.CATEGORY,
-            DbHelper.COL_CATEGORY + " AS " + StreamContract.Feed.Columns.CATEGORY);
         m.put(
             StreamContract.Feed.Columns.DESC,
             DbHelper.COL_DESC + " AS " + StreamContract.Feed.Columns.DESC);
@@ -196,7 +191,10 @@ public class StreamProvider extends ContentProvider {
     }
 
     private long insertFeed(ContentValues vals) {
-        return dbHelper.getDb().insert(DbHelper.TABLE_FEED, null, vals);
+        long pk = -1;
+        try { pk = dbHelper.getDb().insert(DbHelper.TABLE_FEED, null, vals); }
+        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
+        return pk;
     }
 
     private Cursor queryFeed(String[] proj, String sel, String[] selArgs, String ord, long pk) {

@@ -16,7 +16,6 @@ public class DbHelper extends SQLiteOpenHelper {
     static final String COL_LINK = "link";
     static final String COL_AUTHOR = "author";
     static final String COL_PUB_DATE = "pub_date";
-    static final String COL_CATEGORY = "category";
     static final String COL_DESC = "description";
 
     private static final String TAG = "Stream-DbHelper";

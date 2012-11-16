@@ -1,12 +1,15 @@
 package com.marakana.android.stream;
 
 import android.app.Activity;
+import android.content.ContentUris;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.marakana.android.parser.Post;
+import com.marakana.android.stream.db.StreamContract;
 
 /**
  * PostActivity
@@ -35,7 +38,10 @@ public class PostActivity extends Activity {
 
         id = getIntent().getLongExtra(KEY_ID, -1);
 
-        post = PostHelper.getPost(this, id);
+        Uri uri = ContentUris.withAppendedId(StreamContract.Feed.URI, id);
+
+        //!!! on the UI thread????
+        post = Post.getPost(id, getContentResolver().query(uri, null, null, null, null));
         setTitle(post.getTitle());
 
         // Setup the post fragment
@@ -53,11 +59,14 @@ public class PostActivity extends Activity {
         return actionBarMgr.onCreateOptionsMenu(R.menu.activity_post, menu);
     }
 
+
     /**
      * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return actionBarMgr.onOptionsItemSelected(item);
+        return (actionBarMgr.onOptionsItemSelected(item))
+            ? true
+            : super.onOptionsItemSelected(item);
     }
 }

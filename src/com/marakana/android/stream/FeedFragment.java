@@ -59,27 +59,33 @@ public class FeedFragment extends ListFragment {
 
     // --- Loader Callbacks
     private final LoaderManager.LoaderCallbacks<Cursor> loader
-    = new LoaderManager.LoaderCallbacks<Cursor>() {
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            return new CursorLoader(
-                getActivity(),
-                StreamContract.Feed.URI,
-                FROM,
-                null,
-                null,
-                null);
-        }
+        = new LoaderManager.LoaderCallbacks<Cursor>() {
+            private final String[] PROJ = new String[FROM.length + 1];
+            {
+                PROJ[0] = StreamContract.Feed.Columns.ID;
+                System.arraycopy(FROM, 0, PROJ, 1, FROM.length);
+            }
 
-        @Override
-        public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
-            adapter.swapCursor(cursor);
-            setSelection(0);
-        }
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                return new CursorLoader(
+                    getActivity(),
+                    StreamContract.Feed.URI,
+                    PROJ,
+                    null,
+                    null,
+                    null);
+            }
 
-        @Override
-        public void onLoaderReset(Loader<Cursor> cursor) { adapter.swapCursor(null); }
-    };
+            @Override
+            public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
+                adapter.swapCursor(cursor);
+                setSelection(0);
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> cursor) { adapter.swapCursor(null); }
+        };
 
     SimpleCursorAdapter adapter;
 

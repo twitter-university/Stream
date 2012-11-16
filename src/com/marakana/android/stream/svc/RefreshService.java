@@ -10,8 +10,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.marakana.android.parser.FeedParser;
-import com.marakana.android.parser.FeedParserFactory;
-import com.marakana.android.parser.ParserType;
 import com.marakana.android.parser.Post;
 import com.marakana.android.stream.db.StreamContract;
 
@@ -23,8 +21,6 @@ public class RefreshService extends IntentService {
     private static final String TAG = "Stream-RefreshService";
 
     private static final String FEED_URL = "http://marakana.com/s/feed.rss";
-
-    private static final ParserType PARSER_TYPE = ParserType.ANDROID_SAX;
 
     /**
      * @param ctxt
@@ -41,7 +37,7 @@ public class RefreshService extends IntentService {
      */
     public RefreshService() {
         super(TAG);
-        parser = FeedParserFactory.getParser(FEED_URL, PARSER_TYPE);
+        parser = FeedParser.getParser(FEED_URL, FeedParser.Type.ANDROID_SAX);
     }
 
     /**
@@ -53,12 +49,12 @@ public class RefreshService extends IntentService {
 
         try { posts = parser.parse(); }
         catch (Exception e) {
-            Log.e(TAG, "Failed parsing: " + FEED_URL, e);
+            Log.w(TAG, "Failed parsing: " + FEED_URL, e);
             return;
         }
 
         if (null == posts) {
-            Log.d(TAG, "No posts in feed: " + FEED_URL);
+            Log.w(TAG, "No posts in feed: " + FEED_URL);
             return;
         }
 
@@ -70,7 +66,7 @@ public class RefreshService extends IntentService {
             values.put(StreamContract.Feed.Columns.ID, Long.valueOf(post.hashCode()));
             values.put(StreamContract.Feed.Columns.TITLE, post.getTitle());
             values.put(StreamContract.Feed.Columns.DESC, post.getDescription());
-            values.put(StreamContract.Feed.Columns.LINK, post.getLink().toString());
+            values.put(StreamContract.Feed.Columns.LINK, post.getLinkString());
             values.put(StreamContract.Feed.Columns.PUB_DATE, Long.valueOf(post.getTimestamp()));
 
             // Insert into the content provider

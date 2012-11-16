@@ -64,7 +64,7 @@ public class ActionBarMgr {
 //                activity.startActivity(Intent.createChooser(share, "Share this post"));
                 break;
             default:
-                return activity.onOptionsItemSelected(item);
+                return false;
         }
         return true;
     }

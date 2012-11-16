@@ -29,11 +29,11 @@
             android:launchMode="singleTop" >
         </activity>
 
-        <service android:name=".RefreshService" >
+        <service android:name=".svc.RefreshService" >
         </service>
 
         <provider
-            android:name=".StreamProvider"
+            android:name=".db.StreamProvider"
             android:authorities="com.marakana.android.stream.provider"
             android:exported="false" />
     </application>
