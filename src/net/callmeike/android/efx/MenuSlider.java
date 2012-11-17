@@ -17,12 +17,8 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 
 
 /**
@@ -44,7 +40,6 @@ public abstract class MenuSlider<T> {
     final Activity activity;
 
     private final int viewLayoutId;
-    private final int itemLayoutId;
     private final int duration;
     private final int overhang;
 
@@ -53,25 +48,22 @@ public abstract class MenuSlider<T> {
 
     GestureDetector gestureDetector;
 
-    private ListView menuView;
+    private FrameLayout menuView;
 
     /**
      * @param activity
      * @param viewLayoutId
-     * @param itemLayoutId
      * @param duration
      * @param overhang
      */
     public MenuSlider(
             Activity activity,
             int viewLayoutId,
-            int itemLayoutId,
             int duration,
             int overhang)
     {
         this.activity = activity;
         this.viewLayoutId = viewLayoutId;
-        this.itemLayoutId = itemLayoutId;
         this.duration = duration;
         this.overhang = overhang;
         activity.getActionBar().setHomeButtonEnabled(true);
@@ -130,23 +122,23 @@ public abstract class MenuSlider<T> {
         handleSelection(item);
     }
 
-    void onShowComplete(ListView menu) {
+    void onShowComplete(FrameLayout menu) {
         if (null == menuView) { hide(false, menu); }
         animating = false;
     }
 
-    void onHideComplete(ListView menu) {
+    void onHideComplete(FrameLayout menu) {
         ((FrameLayout) activity.getWindow().getDecorView()).removeView(menu);
         animating = false;
     }
 
     private void hideMenuView(boolean animate) {
-        ListView menu = menuView;
+        FrameLayout menu = menuView;
         menuView = null;
         hide(animate, menu);
     }
 
-    private void hide(boolean animate, final ListView menu) {
+    private void hide(boolean animate, final FrameLayout menu) {
         animating = animate;
 
         moveFrame(
@@ -161,10 +153,10 @@ public abstract class MenuSlider<T> {
         if (!animating) { onHideComplete(menu); }
     }
 
-    private ListView show() {
+    private FrameLayout show() {
         animating = true;
 
-        final ListView menu = getMenu();
+        final FrameLayout menu = getMenu();
 
         LinearLayout actionBarFrame = moveFrame(
                 -bounds.y,
@@ -209,10 +201,10 @@ public abstract class MenuSlider<T> {
         v.startAnimation(ta);
     }
 
-    private ListView getMenu() {
+    private FrameLayout getMenu() {
         LayoutInflater inflater
             = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        ListView menu = (ListView) inflater.inflate(viewLayoutId, null);
+        FrameLayout menu = (FrameLayout) inflater.inflate(viewLayoutId, null);
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT,
@@ -221,15 +213,15 @@ public abstract class MenuSlider<T> {
         params.setMargins(0, bounds.x, 0, 0);
         menu.setLayoutParams(params);
 
-        final ArrayAdapter<T> adapter = new ArrayAdapter<T>(activity, itemLayoutId);
-        adapter.addAll(getMenuItems());
-        menu.setAdapter(adapter);
-
-        menu.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> row, View v, int pos, long id) {
-                handleMenuSelection(adapter.getItem(pos));
-            } });
+//        final ArrayAdapter<T> adapter = new ArrayAdapter<T>(activity, itemLayoutId);
+//        adapter.addAll(getMenuItems());
+//        menu.setAdapter(adapter);
+//
+//        menu.setOnItemClickListener(new OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> row, View v, int pos, long id) {
+//                handleMenuSelection(adapter.getItem(pos));
+//            } });
 
         return menu;
     }

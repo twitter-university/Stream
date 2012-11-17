@@ -13,7 +13,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String TAG = "DB";
 
     private static final String DB_NAME = "stream.db";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
 
     static final String TABLE_FEED = "feed";
     static final String TABLE_TAGS = "tags";
@@ -49,7 +49,7 @@ public class DbHelper extends SQLiteOpenHelper {
         private Tags() {}
 
         private static final String CREATE_TABLE
-            = "CREATE TABLE " + TABLE_FEED + " ("
+            = "CREATE TABLE " + TABLE_TAGS + " ("
                 + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
                 + COL_TITLE + " text,"
                 + COL_LINK + " text,"

@@ -50,7 +50,7 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
      * @param enabled if true, home as up is enabled
      */
     public ActionBarMgr(Activity activity, boolean enabled) {
-        super(activity, R.layout.menu, R.layout.menu_item, MENU_DURATION, MENU_OVERHANG);
+        super(activity, R.layout.menu, MENU_DURATION, MENU_OVERHANG);
         activity.getActionBar().setDisplayHomeAsUpEnabled(enabled);
         this.activity = activity;
     }
