@@ -37,9 +37,11 @@ import android.widget.ListView;
  * @param <T> menu item type
  */
 public abstract class MenuSlider<T> {
-    final Activity activity;
+    private static final String TAG = "SLIDER";
 
-    boolean animating;
+     boolean animating;
+
+    final Activity activity;
 
     private final int viewLayoutId;
     private final int itemLayoutId;
@@ -50,6 +52,7 @@ public abstract class MenuSlider<T> {
     private final Point bounds = new Point();
 
     GestureDetector gestureDetector;
+
     private ListView menuView;
 
     /**
@@ -101,7 +104,7 @@ public abstract class MenuSlider<T> {
      *
      */
     public void toggleSlider() {
-        Log.d("SLIDER", "toggled: " + animating);
+        Log.d(TAG, "toggled: " + animating);
         if (animating) { return; }
 
         setBounds();
@@ -236,7 +239,6 @@ public abstract class MenuSlider<T> {
             menuView.setOnTouchListener(
                 new View.OnTouchListener() {
                     @Override public boolean onTouch(View v, MotionEvent event) {
-                        Log.d("SWIPE", "on touch called");
                         return gestureDetector.onTouchEvent(event);
                     } });
         }

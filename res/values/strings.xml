@@ -16,4 +16,6 @@
     <string name="open">Open</string>
     <string name="share">Share</string>
 
+    <string name="tree_desc">tree&#8230;</string>
+
 </resources>

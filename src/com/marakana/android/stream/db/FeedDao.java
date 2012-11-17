@@ -91,6 +91,7 @@ class FeedDao {
     }
 
     private final DbHelper dbHelper;
+    @SuppressWarnings("unused")
     private final StreamProvider provider;
 
     public FeedDao(StreamProvider provider, DbHelper dbHelper) {
