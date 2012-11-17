@@ -38,9 +38,6 @@ public class RefreshService extends IntentService {
         ctxt.startService(new Intent(ctxt, RefreshService.class));
     }
 
-
-
-
     private class ContentValuesPostHandler implements PostHandler {
         private final SimpleDateFormat FORMATTER
                 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);

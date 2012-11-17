@@ -20,7 +20,7 @@ import android.util.Log;
  * StreamProvider
  */
 public class StreamProvider extends ContentProvider {
-    private static final String TAG = "Stream-StreamProvider";
+    private static final String TAG = "DB";
 
     private static final String DEFAULT_SORT = StreamContract.Feed.Columns.PUB_DATE + " DESC";
 

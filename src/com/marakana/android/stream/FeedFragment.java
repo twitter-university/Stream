@@ -30,16 +30,16 @@ public class FeedFragment extends ListFragment {
 
     private static final int LOADER_ID = 47;
 
-    private static final int[] TO = {
-        R.id.text_title,
-        R.id.text_description,
-        R.id.text_date
-    };
-
     static final String[] FROM = {
         StreamContract.Feed.Columns.TITLE,
         StreamContract.Feed.Columns.DESC,
         StreamContract.Feed.Columns.PUB_DATE
+    };
+
+    private static final int[] TO = {
+        R.id.text_title,
+        R.id.text_description,
+        R.id.text_date
     };
 
     private static final ViewBinder VIEW_BINDER = new ViewBinder() {
@@ -107,11 +107,11 @@ public class FeedFragment extends ListFragment {
         // Create the adapter
         adapter = new SimpleCursorAdapter(
                 activity,
-            R.layout.list_item,
-            null,
-            FROM,
-            TO,
-            0);
+                R.layout.list_item,
+                null,
+                FROM,
+                TO,
+                0);
         adapter.setViewBinder(VIEW_BINDER);
         setListAdapter(adapter);
 
@@ -127,7 +127,7 @@ public class FeedFragment extends ListFragment {
         // Start the RefreshService
         RefreshService.pollOnce(activity);
 
-        Log.d(TAG, "onActivityCreated");
+        Log.d(TAG, "activity created");
     }
 
     /**
