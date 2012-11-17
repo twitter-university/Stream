@@ -1,7 +1,6 @@
 package com.marakana.android.stream.db;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.io.FileNotFoundException;
 import java.util.Map;
 
 import android.content.ContentProvider;
@@ -9,10 +8,8 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.text.TextUtils;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 
@@ -22,72 +19,52 @@ import android.util.Log;
 public class StreamProvider extends ContentProvider {
     private static final String TAG = "DB";
 
-    private static final String DEFAULT_SORT = StreamContract.Feed.Columns.PUB_DATE + " DESC";
-
-    private static final String FEED_PK_CONSTRAINT = DbHelper.COL_ID + "=";
-
     private static final int FEED_ITEM = 1;
     private static final int FEED_DIR = 2;
+    private static final int TAG_ITEM = 3;
+    private static final int TAG_DIR = 4;
     private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static {
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE, FEED_DIR);
+            StreamContract.Feed.TABLE,
+            FEED_DIR);
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE + "/#", FEED_ITEM);
+            StreamContract.Feed.TABLE + "/#",
+            FEED_ITEM);
+        uriMatcher.addURI(
+            StreamContract.AUTHORITY,
+            StreamContract.Tags.TABLE,
+            TAG_DIR);
+        uriMatcher.addURI(
+            StreamContract.AUTHORITY,
+            StreamContract.Tags.TABLE + "/#",
+            TAG_ITEM);
     }
 
-    private static final Map<String, ColumnDef> FEED_COL_MAP;
-    static {
-        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
-        m.put(
-            StreamContract.Feed.Columns.ID,
-            new ColumnDef(DbHelper.COL_ID, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Feed.Columns.TITLE,
-            new ColumnDef(DbHelper.COL_TITLE, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Feed.Columns.LINK,
-            new ColumnDef(DbHelper.COL_LINK, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Feed.Columns.AUTHOR,
-            new ColumnDef(DbHelper.COL_AUTHOR, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Feed.Columns.PUB_DATE,
-            new ColumnDef(DbHelper.COL_PUB_DATE, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Feed.Columns.DESC,
-            new ColumnDef(DbHelper.COL_DESC, ColumnDef.Type.STRING));
-        FEED_COL_MAP = Collections.unmodifiableMap(m);
-    }
+    /**
+     * @param colMap
+     * @param vals
+     * @return content values for actual table
+     */
+    public static ContentValues translateCols(Map<String, ColumnDef> colMap, ContentValues vals) {
+        ContentValues newVals = new ContentValues();
+        for (String colName : vals.keySet()) {
+            ColumnDef colDef = colMap.get(colName);
+            if (null == colDef) {
+                throw new IllegalArgumentException( "Unrecognized column: " + colName);
+            }
+            colDef.copy(colName, vals, newVals);
+        }
 
-    private static final Map<String, String> FEED_COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-            StreamContract.Feed.Columns.ID,
-            DbHelper.COL_ID + " AS " + StreamContract.Feed.Columns.ID);
-        m.put(
-            StreamContract.Feed.Columns.TITLE,
-            DbHelper.COL_TITLE + " AS " + StreamContract.Feed.Columns.TITLE);
-        m.put(
-            StreamContract.Feed.Columns.LINK,
-            DbHelper.COL_LINK + " AS " + StreamContract.Feed.Columns.LINK);
-        m.put(
-            StreamContract.Feed.Columns.AUTHOR,
-            DbHelper.COL_AUTHOR + " AS " + StreamContract.Feed.Columns.AUTHOR);
-        m.put(
-            StreamContract.Feed.Columns.PUB_DATE,
-            DbHelper.COL_PUB_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
-        m.put(
-            StreamContract.Feed.Columns.DESC,
-            DbHelper.COL_DESC + " AS " + StreamContract.Feed.Columns.DESC);
-        FEED_COL_AS_MAP = Collections.unmodifiableMap(m);
+        return newVals;
     }
 
 
     private DbHelper dbHelper;
+    private FeedDao feed;
+    private TagsDao tags;
 
     /**
      * @see android.content.ContentProvider#onCreate()
@@ -95,7 +72,10 @@ public class StreamProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         dbHelper = new DbHelper(this.getContext());
-        return dbHelper != null;
+        if (null == dbHelper) { return false; }
+        feed = new FeedDao(this, dbHelper);
+        tags = new TagsDao(this, dbHelper);
+        return true;
     }
 
     /**
@@ -108,6 +88,10 @@ public class StreamProvider extends ContentProvider {
                 return StreamContract.Feed.CONTENT_TYPE_ITEM;
             case FEED_DIR:
                 return StreamContract.Feed.CONTENT_TYPE_DIR;
+            case TAG_ITEM:
+                return StreamContract.Tags.CONTENT_TYPE_ITEM;
+            case TAG_DIR:
+                return StreamContract.Tags.CONTENT_TYPE_DIR;
             default:
                 return null;
         }
@@ -138,12 +122,10 @@ public class StreamProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues vals) {
-        vals = translateCols(vals);
-
         long pk;
         switch (uriMatcher.match(uri)) {
             case FEED_DIR:
-                pk = insertFeed(vals);
+                pk = feed.insert(vals);
                 break;
 
             default:
@@ -174,10 +156,17 @@ public class StreamProvider extends ContentProvider {
             case FEED_ITEM:
                 pk = ContentUris.parseId(uri);
             case FEED_DIR:
-                cur = queryFeed(proj, sel, selArgs, ord, pk);
+                cur = feed.query(proj, sel, selArgs, ord, pk);
                 break;
+
+            case TAG_ITEM:
+                pk = ContentUris.parseId(uri);
+            case TAG_DIR:
+                cur = tags.query(proj, sel, selArgs, ord, pk);
+                break;
+
             default:
-                throw new IllegalArgumentException("Unrecognized URI: " + uri);
+                throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
 
         int count = -1;
@@ -186,42 +175,38 @@ public class StreamProvider extends ContentProvider {
             count = cur.getCount();
         }
 
-        Log.d(TAG, "query got records: " + count);
+        Log.d(TAG, "query @" + uri + ": " + count);
         return cur;
     }
 
-    private long insertFeed(ContentValues vals) {
-        long pk = -1;
-        try { pk = dbHelper.getDb().insert(DbHelper.TABLE_FEED, null, vals); }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
-        return pk;
-    }
+    /**
+     * @see android.content.ContentProvider#openFile(android.net.Uri, java.lang.String)
+     */
+    @Override
+    public ParcelFileDescriptor openFile(Uri uri, String mode)
+        throws FileNotFoundException
+    {
+        switch (uriMatcher.match(uri)) {
+            case TAG_ITEM:
+                if (!"r".equals(mode)) {
+                    throw new SecurityException("Write access forbidden");
+                }
+                return tags.openFile(uri);
 
-    private Cursor queryFeed(String[] proj, String sel, String[] selArgs, String ord, long pk) {
-        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setStrict(true);
-
-        qb.setProjectionMap(FEED_COL_AS_MAP);
-
-        qb.setTables(DbHelper.TABLE_FEED);
-
-        if (0 <= pk) { qb.appendWhere(FEED_PK_CONSTRAINT + pk); }
-
-        if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
-
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
-    }
-
-    private ContentValues translateCols(ContentValues vals) {
-        ContentValues newVals = new ContentValues();
-        for (String colName : vals.keySet()) {
-            ColumnDef colDef = FEED_COL_MAP.get(colName);
-            if (null == colDef) {
-                throw new IllegalArgumentException( "Unrecognized column: " + colName);
-            }
-            colDef.copy(colName, vals, newVals);
+            default:
+                throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
+    }
 
-        return newVals;
+    /**
+     * Expose the openFileHelper
+     *
+     * @param uri
+     * @param mode
+     * @return open file descriptor for the file named in the _data column
+     * @throws FileNotFoundException
+     */
+    public ParcelFileDescriptor openData(Uri uri, String mode) throws FileNotFoundException {
+        return openFileHelper(uri, mode);
     }
 }

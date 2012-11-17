@@ -10,33 +10,54 @@ import android.util.Log;
  * DbHelper
  */
 public class DbHelper extends SQLiteOpenHelper {
-    static final String TABLE_FEED = "feed";
-    static final String COL_ID = "id";
-    static final String COL_TITLE = "title";
-    static final String COL_LINK = "link";
-    static final String COL_AUTHOR = "author";
-    static final String COL_PUB_DATE = "pub_date";
-    static final String COL_DESC = "description";
+    private static final String TAG = "DB";
 
-    private static final String TAG = "Stream-DbHelper";
     private static final String DB_NAME = "stream.db";
     private static final int DB_VERSION = 2;
 
-    // lazily build this stuff...
-    private static final class Holder {
-        private Holder() {}
+    static final String TABLE_FEED = "feed";
+    static final String TABLE_TAGS = "tags";
 
-        private static final String CREATE_TABLE_FEED
+    static final String COL_ID = "id";
+    static final String COL_TITLE = "title";
+    static final String COL_LINK = "link";
+    static final String COL_DESC = "description";
+
+    static final String COL_TAGS_ICON = "_data";
+
+    static final String COL_FEED_AUTHOR = "author";
+    static final String COL_FEED_PUB_DATE = "pub_date";
+
+    // lazily build this stuff...
+    private static final class Feed {
+        private Feed() {}
+
+        private static final String CREATE_TABLE
             = "CREATE TABLE " + TABLE_FEED + " ("
                 + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
                 + COL_TITLE + " text,"
                 + COL_LINK + " text,"
-                + COL_AUTHOR + " text,"
-                + COL_PUB_DATE + " integer,"
+                + COL_FEED_AUTHOR + " text,"
+                + COL_FEED_PUB_DATE + " integer,"
                 + COL_DESC + " text)";
 
-        private static final String DROP_TABLE_FEED
+        private static final String DROP_TABLE
             = "DROP TABLE IF EXISTS " + TABLE_FEED;
+    }
+
+    private static final class Tags {
+        private Tags() {}
+
+        private static final String CREATE_TABLE
+            = "CREATE TABLE " + TABLE_FEED + " ("
+                + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
+                + COL_TITLE + " text,"
+                + COL_LINK + " text,"
+                + COL_DESC + " text"
+                + COL_TAGS_ICON + " text)";
+
+        private static final String DROP_TABLE
+            = "DROP TABLE IF EXISTS " + TABLE_TAGS;
     }
 
     /**
@@ -51,8 +72,9 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        Log.d(TAG, "onCreate with sql: " + Holder.CREATE_TABLE_FEED);
-        db.execSQL(Holder.CREATE_TABLE_FEED);
+        Log.d(TAG, "onCreate with sql: " + Feed.CREATE_TABLE);
+        db.execSQL(Feed.CREATE_TABLE);
+        db.execSQL(Tags.CREATE_TABLE);
     }
 
     /**
@@ -61,7 +83,8 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Temporary solution
-        db.execSQL(Holder.DROP_TABLE_FEED);
+        db.execSQL(Feed.DROP_TABLE);
+        db.execSQL(Tags.DROP_TABLE);
         onCreate(db);
     }
 
