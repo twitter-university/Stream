@@ -20,7 +20,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "Stream-DbHelper";
     private static final String DB_NAME = "stream.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     // lazily build this stuff...
     private static final class Holder {
@@ -28,11 +28,11 @@ public class DbHelper extends SQLiteOpenHelper {
 
         private static final String CREATE_TABLE_FEED
             = "CREATE TABLE " + TABLE_FEED + " ("
-                + COL_ID + " long PRIMARY KEY,"
+                + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
                 + COL_TITLE + " text,"
                 + COL_LINK + " text,"
                 + COL_AUTHOR + " text,"
-                + COL_PUB_DATE + " long,"
+                + COL_PUB_DATE + " integer,"
                 + COL_DESC + " text)";
 
         private static final String DROP_TABLE_FEED

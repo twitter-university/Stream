@@ -51,14 +51,14 @@ public class ActionBarMgr {
             case R.id.menu_refresh:
                 RefreshService.pollOnce(activity);
                 break;
-                // these should be direct actions...
+            // these should be direct actions...
             case R.id.menu_link:
 //                i = new Intent(Intent.ACTION_VIEW, Uri.parse(post.getLink().toString()));
 //                activity.startActivity(i);
                 break;
             case R.id.menu_share:
-//                i = new Intent(Intent.ACTION_SEND);
-//                i.setType("text/plain");
+                i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
 //                i.putExtra(Intent.EXTRA_SUBJECT, post.getTitle());
 //                i.putExtra(Intent.EXTRA_TEXT, post.getTitle() + ": " + post.getLink());
 //                activity.startActivity(Intent.createChooser(share, "Share this post"));

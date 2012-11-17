@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
      */
     public void showPost(long id) {
         Intent i = new Intent(this, PostActivity.class);
-        i.putExtra(PostActivity.KEY_ID, id);
+        i.putExtra(PostFragment.KEY_ID, id);
         startActivity(i);
     }
 }

@@ -43,14 +43,14 @@ public final class StreamContract {
             public static final String ID = BaseColumns._ID;
             /** article title */
             public static final String TITLE = "title";
-            /** article link */
-            public static final String LINK = "link";
             /** article author */
             public static final String AUTHOR = "author";
             /** article publication data */
             public static final String PUB_DATE = "pub_date";
             /** article description */
             public static final String DESC = "description";
+            /** article link */
+            public static final String LINK = "link";
         }
     }
 }
