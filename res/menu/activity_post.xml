@@ -4,14 +4,15 @@
     <item
         android:id="@+id/menu_link"
         android:icon="@android:drawable/ic_media_play"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="@string/open_link"
         android:titleCondensed="@string/open">
     </item>
     <item
         android:id="@+id/menu_share"
         android:icon="@android:drawable/ic_menu_share"
-        android:title="@string/share" android:showAsAction="always">
+        android:showAsAction="always"
+        android:title="@string/share">
     </item>
 
 </menu>

@@ -3,6 +3,7 @@ package com.marakana.android.stream;
 import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -124,6 +125,8 @@ public class FeedFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         Log.d(TAG, "onListItemClick'd for pos: " + position + " id: " + id);
-        ((MainActivity) getActivity()).showPost(id);
+        Intent i = new Intent(getActivity(), PostActivity.class);
+        i.putExtra(PostFragment.KEY_ID, id);
+        startActivity(i);
     }
 }

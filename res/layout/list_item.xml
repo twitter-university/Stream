@@ -11,8 +11,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_toLeftOf="@+id/text_date"
-        android:text="Title"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:text="@string/label_title" />
 
     <TextView
         android:id="@+id/text_description"
@@ -20,10 +19,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/text_title"
-        android:text="Desciption"
         android:ellipsize="end"
         android:maxLines="2"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:text="@string/label_desc" />
 
     <TextView
         android:id="@+id/text_date"
@@ -31,8 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="Date"
-        android:textColor="@android:color/secondary_text_light"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:text="@string/label_date"
+        android:textColor="@android:color/secondary_text_light" />
 
 </RelativeLayout>

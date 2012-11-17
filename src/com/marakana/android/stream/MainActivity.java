@@ -1,7 +1,6 @@
 package com.marakana.android.stream;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,25 +12,7 @@ import com.marakana.android.stream.svc.RefreshService;
  * MainActivity
  */
 public class MainActivity extends Activity {
-
     private ActionBarMgr actionBarMgr;
-
-    /**
-     * @see android.app.Activity#onCreate(android.os.Bundle)
-     */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // Setup the action bar
-        getActionBar().setDisplayHomeAsUpEnabled(false);
-
-        // Refresh the data
-        RefreshService.pollOnce(this);
-
-        actionBarMgr = new ActionBarMgr(this, true);
-    }
 
     /**
      * @see android.app.Activity#onCreateOptionsMenu(android.view.Menu)
@@ -52,11 +33,28 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * @param id
+     * @see android.app.Activity#onCreate(android.os.Bundle)
      */
-    public void showPost(long id) {
-        Intent i = new Intent(this, PostActivity.class);
-        i.putExtra(PostFragment.KEY_ID, id);
-        startActivity(i);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Setup the action bar
+        getActionBar().setDisplayHomeAsUpEnabled(false);
+
+        // Refresh the data
+        RefreshService.pollOnce(this);
+
+        actionBarMgr = new ActionBarMgr(this, true);
+    }
+
+    /**
+     * @see android.app.Activity#onPause()
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        actionBarMgr.reset();
     }
 }
