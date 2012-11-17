@@ -7,8 +7,10 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
@@ -46,6 +48,8 @@ public abstract class MenuSlider<T> {
 
     private final Rect viewRect = new Rect();
     private final Point bounds = new Point();
+
+    GestureDetector gestureDetector;
     private ListView menuView;
 
     /**
@@ -81,6 +85,19 @@ public abstract class MenuSlider<T> {
     protected abstract void handleSelection(T item);
 
     /**
+     * @param gestureDetector
+     */
+    public void setGestureDetector(GestureDetector gestureDetector) {
+        this.gestureDetector = gestureDetector;
+        applyGestureDetector();
+    }
+
+    /**
+     * @return boolean true if menu is visible
+     */
+    public boolean getState() { return null != menuView; }
+
+    /**
      *
      */
     public void toggleSlider() {
@@ -89,8 +106,11 @@ public abstract class MenuSlider<T> {
 
         setBounds();
 
-        if (null == menuView) { menuView = show(); }
-        else { hideMenuView(true); }
+        if (null != menuView) { hideMenuView(true); }
+        else {
+            menuView = show();
+            applyGestureDetector();
+        }
     }
 
     /**
@@ -209,5 +229,16 @@ public abstract class MenuSlider<T> {
             } });
 
         return menu;
+    }
+
+    private void applyGestureDetector() {
+        if ((null != gestureDetector) && (null != menuView)) {
+            menuView.setOnTouchListener(
+                new View.OnTouchListener() {
+                    @Override public boolean onTouch(View v, MotionEvent event) {
+                        Log.d("SWIPE", "on touch called");
+                        return gestureDetector.onTouchEvent(event);
+                    } });
+        }
     }
 }

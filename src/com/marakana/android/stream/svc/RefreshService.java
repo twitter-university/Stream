@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Context;
@@ -19,7 +23,7 @@ import com.marakana.android.stream.db.StreamContract;
  * RefreshService
  */
 public class RefreshService extends IntentService {
-    private static final String TAG = "Stream-RefreshService";
+    private static final String TAG = "REFRESH";
 
     private static final URL FEED_URL;
     static {
@@ -27,7 +31,20 @@ public class RefreshService extends IntentService {
         catch (Exception e) { throw new RuntimeException("Can't parse feed URL!"); }
     }
 
+    /**
+     * @param ctxt
+     */
+    public static void pollOnce(Context ctxt) {
+        ctxt.startService(new Intent(ctxt, RefreshService.class));
+    }
+
+
+
+
     private class ContentValuesPostHandler implements PostHandler {
+        private final SimpleDateFormat FORMATTER
+                = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+
         private final ContentValues vals = new ContentValues();
 
         public ContentValuesPostHandler() {}
@@ -44,7 +61,10 @@ public class RefreshService extends IntentService {
 
         @Override
         public void setPubDate(String pubDate) {
-            vals.put(StreamContract.Feed.Columns.PUB_DATE, pubDate);
+            long t = 0;
+            try { t = FORMATTER.parse(pubDate).getTime(); }
+            catch (ParseException e) { }
+            vals.put(StreamContract.Feed.Columns.PUB_DATE, Long.valueOf(t));
         }
 
         @Override
@@ -58,15 +78,8 @@ public class RefreshService extends IntentService {
         }
     }
 
-    /**
-     * @param ctxt
-     */
-    public static void pollOnce(Context ctxt) {
-        ctxt.startService(new Intent(ctxt, RefreshService.class));
-    }
-
-
     private int added;
+    private boolean running;
 
     /**
      *
@@ -78,7 +91,15 @@ public class RefreshService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
+        boolean r;
+        synchronized (this) {
+            r = running;
+            running = true;
+        }
+        if (r) { return; }
+
         added = 0;
+        Log.d(TAG, "Starting parse: " + added);
 
         InputStream feed = null;
         try {
@@ -91,6 +112,7 @@ public class RefreshService extends IntentService {
         }
         finally {
             Log.d(TAG, "Inserted records: " + added);
+            synchronized (this) { running = false; }
             if (null != feed) {
                 try { feed.close(); } catch (IOException e) { }
             }

@@ -6,11 +6,13 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import net.callmeike.android.efx.MenuSlider;
 
+import com.marakana.android.stream.efx.SwipeDetector;
 import com.marakana.android.stream.svc.RefreshService;
 
 final class MenuElement {
@@ -41,6 +43,7 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
     }
 
     private final Activity activity;
+    GestureDetector gestureDetector;
 
     /**
      * @param activity
@@ -92,6 +95,16 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
                 return false;
         }
         return true;
+    }
+
+    /**
+     * @return a gesture detector
+     */
+    public GestureDetector getFlingDetector() {
+        if (null == gestureDetector) {
+            gestureDetector = new GestureDetector(activity, new SwipeDetector(this));
+        }
+        return gestureDetector;
     }
 
     /**

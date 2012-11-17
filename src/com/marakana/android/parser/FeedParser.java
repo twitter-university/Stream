@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
-import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -19,8 +17,6 @@ import org.xmlpull.v1.XmlPullParserException;
  * XmlPullFeedParser
  */
 public class FeedParser {
-    private static final String TAG = "PARSER";
-
     /** XML tag: rss */ public static final String TAG_RSS = "rss";
     /** XML tag: channel */ public static final String TAG_CHANNEL = "channel";
     /** XML tag: item */ public static final String TAG_ITEM = "item";
@@ -120,7 +116,7 @@ public class FeedParser {
                     root.parseElement(parser, hdlr, parseMap);
                 }
                 @Override public void text(FeedParser root, String text, PostHandler hdlr) { }
-                @Override public void end(FeedParser root, PostHandler hdlr) { hdlr.finish(); }
+                @Override public void end(FeedParser root, PostHandler hdlr) { }
             });
 
         rssParseTable = Collections.unmodifiableMap(m);
@@ -138,7 +134,7 @@ public class FeedParser {
                     root.parseElement(parser, hdlr, parseMap);
                 }
                 @Override public void text(FeedParser root, String text, PostHandler hdlr) { }
-                @Override public void end(FeedParser root, PostHandler hdlr) { hdlr.finish(); }
+                @Override public void end(FeedParser root, PostHandler hdlr) { }
             });
         docParseTable = Collections.unmodifiableMap(m);
     }
@@ -150,7 +146,6 @@ public class FeedParser {
      * @throws IOException
      */
     public void parse(InputStream in, PostHandler hdlr) throws XmlPullParserException, IOException {
-        Log.d(TAG, "Starting parse");
         XmlPullParser parser = Xml.newPullParser();
         parser.setInput(in, null);
         while (true) {
@@ -183,7 +178,7 @@ public class FeedParser {
 
                     parser.next();
 
-                    elem = parseMap.get(name.toLowerCase(Locale.US));
+                    elem = parseMap.get(name);
                     if (null != elem) {
                         elem.start(this, parser, hdlr);
                         break;
@@ -196,6 +191,7 @@ public class FeedParser {
                     parser.next();
                     break;
 
+                case XmlPullParser.END_DOCUMENT:
                 case XmlPullParser.END_TAG:
                     if (null == name) { return; }
 

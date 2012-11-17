@@ -10,11 +10,13 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 import android.widget.TextView;
+
 
 import com.marakana.android.stream.db.StreamContract;
 import com.marakana.android.stream.svc.RefreshService;
@@ -24,7 +26,7 @@ import com.marakana.android.stream.svc.RefreshService;
  * FeedFragment
  */
 public class FeedFragment extends ListFragment {
-    private static final String TAG = "Stream-FeedFragment";
+    private static final String TAG = "FEED";
 
     private static final int LOADER_ID = 47;
 
@@ -80,6 +82,7 @@ public class FeedFragment extends ListFragment {
 
             @Override
             public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
+                Log.d(TAG, "load finished");
                 adapter.swapCursor(cursor);
                 setSelection(0);
             }
@@ -97,14 +100,13 @@ public class FeedFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        setEmptyText(getString(R.string.no_feed));
+        final MainActivity activity = (MainActivity) getActivity();
 
-        // Initialize the loader
-        getLoaderManager().initLoader(LOADER_ID, null, loader);
+        setEmptyText(getString(R.string.no_feed));
 
         // Create the adapter
         adapter = new SimpleCursorAdapter(
-            getActivity(),
+                activity,
             R.layout.list_item,
             null,
             FROM,
@@ -113,8 +115,17 @@ public class FeedFragment extends ListFragment {
         adapter.setViewBinder(VIEW_BINDER);
         setListAdapter(adapter);
 
+        getListView().setOnTouchListener(
+            new View.OnTouchListener() {
+                @Override public boolean onTouch(View v, MotionEvent event) {
+                    return activity.getActionBarMgr().getFlingDetector().onTouchEvent(event);
+                } });
+
+        // Initialize the loader
+        getLoaderManager().initLoader(LOADER_ID, null, loader);
+
         // Start the RefreshService
-        RefreshService.pollOnce(getActivity());
+        RefreshService.pollOnce(activity);
 
         Log.d(TAG, "onActivityCreated");
     }

@@ -9,7 +9,7 @@ import android.view.MenuItem;
  * PostActivity
  */
 public class PostActivity extends Activity {
-    //private static final String TAG = "Stream-PostActivity";
+    //private static final String TAG = "POST";
 
     private ActionBarMgr actionBarMgr;
 

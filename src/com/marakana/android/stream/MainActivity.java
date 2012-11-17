@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import com.marakana.android.stream.svc.RefreshService;
 
 
@@ -40,13 +39,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Setup the action bar
-        getActionBar().setDisplayHomeAsUpEnabled(false);
+        actionBarMgr = new ActionBarMgr(this, true);
+        actionBarMgr.setGestureDetector(actionBarMgr.getFlingDetector());
 
+        // Setup the action bar
         // Refresh the data
         RefreshService.pollOnce(this);
-
-        actionBarMgr = new ActionBarMgr(this, true);
     }
 
     /**
@@ -57,4 +55,6 @@ public class MainActivity extends Activity {
         super.onPause();
         actionBarMgr.reset();
     }
+
+    ActionBarMgr getActionBarMgr() { return actionBarMgr; }
 }
