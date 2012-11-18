@@ -7,7 +7,7 @@
     android:background="@color/pearl">
 
     <pl.polidea.treeview.TreeViewList
-        android:id="@+id/mainTreeView"
+        android:id="@+id/tree_menu"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:scrollbars="vertical"

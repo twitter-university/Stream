@@ -39,7 +39,7 @@ import android.util.Log;
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
 class TagsDao {
-    private static final String TAG = "FEED-DAO";
+    private static final String TAG = "TAGS-DAO";
 
     private static final String DEFAULT_SORT = StreamContract.Feed.Columns.PUB_DATE + " DESC";
 
@@ -98,7 +98,7 @@ class TagsDao {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
         try { pk = dbHelper.getDb().insert(DbHelper.TABLE_TAGS, null, vals); }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
+        catch (SQLException e) { Log.w(TAG, "Insert failed: ", e); }
         return pk;
     }
 
@@ -117,6 +117,7 @@ class TagsDao {
         return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
     }
 
+    @SuppressWarnings("resource")
     public ParcelFileDescriptor openFile(Uri uri) throws FileNotFoundException {
         long pk = ContentUris.parseId(uri);
         if (0 > pk) { throw new IllegalArgumentException("Malformed URI: " + uri); }
@@ -157,7 +158,7 @@ class TagsDao {
             }
         }
         catch (IOException e) {
-            new FileNotFoundException("failed opening : " + fName);
+            throw new FileNotFoundException("failed opening : " + fName);
         }
 
         return fd;

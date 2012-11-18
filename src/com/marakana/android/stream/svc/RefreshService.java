@@ -75,7 +75,7 @@ public class RefreshService extends IntentService {
                         INTENT_TAG,
                         new Intent(ctxt, RefreshService.class),
                         PendingIntent.FLAG_UPDATE_CURRENT));
-        Log.d(TAG, "Polling started");
+        Log.d(TAG, "peroidic polling started @" + RefreshService.POLL_INTERVAL);
     }
 
     private class ContentValuesPostHandler implements PostHandler {
@@ -128,18 +128,18 @@ public class RefreshService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(TAG, "Starting parse: " + added);
-
-        // one at at time, please
-        if (mutex.getAndSet(true)) { return; }
-        added = 0;
+        Log.d(TAG, "starting poll");
 
         URL url = null;
         InputStream feed = null;
         try {
+            if (mutex.getAndSet(true)) { return; }
+            added = 0;
+
             url = getFeedUrl();
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
             c.addRequestProperty(HEAD_ACCEPT, MIME_RSS);
+
             parseFeed(c.getInputStream());
         }
         catch (IOException e) {
@@ -147,13 +147,13 @@ public class RefreshService extends IntentService {
         }
         finally {
             mutex.set(false);
-            Log.d(TAG, "Inserted records: " + added);
+            Log.d(TAG, "poll complete: " + added);
             if (null != feed) {
                 try { feed.close(); } catch (IOException e) { }
             }
         }
 
-        // Virgil seems to recommend this.  Really?
+        // !!! Virgil seems to recommend this.  Really?
         stopSelf();
     }
 
@@ -172,9 +172,7 @@ public class RefreshService extends IntentService {
     private void parseFeed(InputStream feed) {
         FeedParser parser = new FeedParser();
         try { parser.parse(feed, new ContentValuesPostHandler()); }
-        catch (Exception e) {
-            Log.w(TAG, "Parse failed", e);
-        }
+        catch (Exception e) { Log.w(TAG, "Parse failed", e); }
     }
 
     private long getLatestPostTime() {

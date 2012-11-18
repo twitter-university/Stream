@@ -18,22 +18,32 @@ package com.marakana.android.stream.efx;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
-import net.callmeike.android.efx.MenuSlider;
-
-
 
 /**
  *
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
-    private final MenuSlider<?> slider;
+public class FlingDetector extends GestureDetector.SimpleOnGestureListener {
+    /** Fling direction */
+    public static enum Direction { /** right */ RIGHT,  /** left */ LEFT; }
+
+    /** FlingListener */
+    public static interface FlingListener {
+        /**
+         * @param dir
+         * @return true if consumed
+         */
+        boolean onFling(Direction dir);
+    }
+
+
+    private final FlingListener listener;
 
     /**
-     * @param slider
+     * @param listener
      */
-    public SwipeDetector(MenuSlider<?> slider) { this.slider = slider; }
+    public FlingDetector(FlingListener listener) { this.listener = listener; }
 
     /**
      * @see android.view.GestureDetector.SimpleOnGestureListener#onDown(android.view.MotionEvent)
@@ -46,14 +56,7 @@ public class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
      */
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY) {
-        if ((2 * Math.abs(vY)) > Math.abs(vX)) { return false; }
-
-        boolean open = (0 < Math.signum((double) vX));
-        boolean opened = slider.getState();
-
-        if (open == opened) { return false; }
-
-        slider.toggleSlider();
-        return true;
+        if (Math.abs(vX) < 2 * Math.abs(vY)) { return false; }
+        return listener.onFling((0 < Math.signum((double) vX)) ? Direction.RIGHT : Direction.LEFT);
     }
 }

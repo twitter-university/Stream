@@ -9,6 +9,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -19,12 +20,14 @@ import com.marakana.android.stream.db.StreamContract;
 
 /**
  * PostFragment
+ *
+ * !!! Getting error:
+ *     E/webview(9263): Error: WebView.destroy() called while still attached!
  */
 public class PostFragment extends WebViewFragment {
     /** intent key for id parameter */
     public static final String KEY_ID = "com.marakana.android.stream.ID";
 
-    //private static final String TAG = "Stream-PostFragment";
     private static final String MIME_TYPE = "text/html";
     private static final String ENCODING = "utf-8";
     private static final String PREFIX = "<html><body>\n";
@@ -32,6 +35,8 @@ public class PostFragment extends WebViewFragment {
     private static final String SUFFIX = "\n</body></html>";
 
     private static final int LOADER_ID = 47;
+
+    private static final String TAG = "POST";
 
 
     private final WebViewClient webviewClient = new WebViewClient() {
@@ -54,30 +59,25 @@ public class PostFragment extends WebViewFragment {
     // --- Loader Callbacks
     private final LoaderManager.LoaderCallbacks<Cursor> loader
         = new LoaderManager.LoaderCallbacks<Cursor>() {
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return (null == args)
+                ? null
+                : new CursorLoader(
+                    getActivity(),
+                    ContentUris.withAppendedId(StreamContract.Feed.URI, args.getLong(KEY_ID)),
+                    new String[] { StreamContract.Feed.Columns.DESC },
+                    null,
+                    null,
+                    null);
+        }
 
-            @Override
-            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                return (null == args)
-                    ? null
-                    : new CursorLoader(
-                        getActivity(),
-                        ContentUris.withAppendedId(StreamContract.Feed.URI, args.getLong(KEY_ID)),
-                        new String[] { StreamContract.Feed.Columns.DESC },
-                        null,
-                        null,
-                        null);
-            }
+        @Override
+        public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) { setWebContent(cursor); }
 
-            @Override
-            public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
-                setWebContent(cursor);
-            }
-
-            @Override
-            public void onLoaderReset(Loader<Cursor> ldr) {
-                setWebContent(null);
-            }
-        };
+        @Override
+        public void onLoaderReset(Loader<Cursor> ldr) { setWebContent(null); }
+    };
 
     /**
      * @see android.app.Fragment#onActivityCreated(android.os.Bundle)
@@ -87,6 +87,8 @@ public class PostFragment extends WebViewFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        PostActivity activity = (PostActivity) getActivity();
+
         // Initialize the loader
         getLoaderManager().initLoader(LOADER_ID, null, loader);
 
@@ -95,6 +97,11 @@ public class PostFragment extends WebViewFragment {
         // Enable JavaScript
         WebSettings webSettings = getWebView().getSettings();
         webSettings.setJavaScriptEnabled(true);
+
+        // add the fling opener
+        activity.getActionBarMgr().attachFlingListener(getWebView());
+
+        Log.d(TAG, "created");
     }
 
     /**
@@ -108,16 +115,15 @@ public class PostFragment extends WebViewFragment {
 
     void setWebContent(Cursor cursor) {
         WebView view = getWebView();
-        if (null != view) {
-            StringBuilder content = new StringBuilder(PREFIX).append(STYLE);
+        if (null == view) { return; }
 
-            content.append(
+        StringBuilder content = new StringBuilder(PREFIX).append(STYLE);
+        content.append(
                 ((null != cursor) && cursor.moveToNext())
-                    ? cursor.getString(0)
-                    : "<p>Empty post.</p>");
-            content.append(SUFFIX);
+                ? cursor.getString(0)
+                        : "<p>Empty post.</p>");
+        content.append(SUFFIX);
 
-            getWebView().loadData(content.toString(), MIME_TYPE, ENCODING);
-        }
+        view.loadData(content.toString(), MIME_TYPE, ENCODING);
     }
 }

@@ -1,49 +1,32 @@
 package com.marakana.android.stream;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 
-import net.callmeike.android.efx.MenuSlider;
+import net.callmeike.android.efx.WindowSlider;
 
-import com.marakana.android.stream.efx.SwipeDetector;
 import com.marakana.android.stream.svc.RefreshService;
+import com.marakana.android.stream.efx.FlingDetector;
+import com.marakana.android.stream.efx.FlingDetector.Direction;
 
-final class MenuElement {
-    private final String label;
-    private final Class<?> target;
-
-    public MenuElement(String label, Class<?> target) {
-        this.label = label;
-        this.target = target;
-    }
-
-    public Class<?> getTarget() { return target; }
-
-    @Override public String toString() { return label; }
-}
 
 /**
  * ActionBarMgr
+ *
+ * @version $Revision: $
+ * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class ActionBarMgr extends MenuSlider<MenuElement> {
+public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingListener {
     private static final int MENU_DURATION = 300;
     private static final int MENU_OVERHANG = 128;
 
-    private static final List<MenuElement> topMenu;
-    static {
-        List<MenuElement> l = new ArrayList<MenuElement>();
-        topMenu = Collections.unmodifiableList(l);
-    }
 
     private final Activity activity;
-    GestureDetector gestureDetector;
 
     /**
      * @param activity
@@ -51,9 +34,31 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
      */
     public ActionBarMgr(Activity activity, boolean enabled) {
         super(activity, R.layout.menu, MENU_DURATION, MENU_OVERHANG);
-        activity.getActionBar().setDisplayHomeAsUpEnabled(enabled);
         this.activity = activity;
+
+        activity.getActionBar().setDisplayHomeAsUpEnabled(enabled);
+
+        attachFlingListener(findViewById(R.id.tree_menu));
     }
+
+    /**
+     * @param v the view
+     */
+    public void attachFlingListener(View v) {
+        final GestureDetector flingDetector
+            = new GestureDetector(activity, new FlingDetector(this));
+        v.setOnTouchListener(
+            new View.OnTouchListener() {
+                @Override public boolean onTouch(View view, MotionEvent event) {
+                    return flingDetector.onTouchEvent(event);
+                } });
+    }
+
+    /**
+     * @see com.marakana.android.stream.efx.FlingDetector.FlingListener#onFling(com.marakana.android.stream.efx.FlingDetector.Direction)
+     */
+    @Override
+    public boolean onFling(Direction dir) { return toggleSlider(dir); }
 
     /**
      * @param rez
@@ -74,7 +79,7 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
         switch (item.getItemId()) {
             // called when the Home (Up) button is pressed in the Action Bar.
             case android.R.id.home:
-                toggleSlider();
+                setVisible(!getVisible());
                 break;
             case R.id.menu_refresh:
                 RefreshService.pollOnce(activity);
@@ -97,30 +102,10 @@ public class ActionBarMgr extends MenuSlider<MenuElement> {
         return true;
     }
 
-    /**
-     * @return a gesture detector
-     */
-    public GestureDetector getFlingDetector() {
-        if (null == gestureDetector) {
-            gestureDetector = new GestureDetector(activity, new SwipeDetector(this));
-        }
-        return gestureDetector;
-    }
-
-    /**
-     * @see net.callmeike.android.efx.MenuSlider#getMenuItems()
-     */
-    @Override
-    protected List<MenuElement> getMenuItems() { return topMenu; }
-
-    /**
-     * @see net.callmeike.android.efx.MenuSlider#handleSelection(java.lang.Object)
-     */
-    @Override
-    protected void handleSelection(MenuElement item) {
-        Intent i = new Intent(activity, item.getTarget());
-        i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        activity.startActivity(i);
+    private boolean toggleSlider(Direction dir) {
+        boolean opening = (dir == FlingDetector.Direction.RIGHT);
+        if (getVisible() == opening) { return false; }
+        setVisible(opening);
+        return true;
     }
 }

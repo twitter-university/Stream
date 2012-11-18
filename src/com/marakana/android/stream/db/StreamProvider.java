@@ -137,6 +137,7 @@ public class StreamProvider extends ContentProvider {
             uri = uri.buildUpon().appendPath(String.valueOf(pk)).build();
             getContext().getContentResolver().notifyChange(uri, null);
         }
+        Log.d(TAG, "inserted @" + uri + ": " + vals);
 
         return uri;
     }
@@ -146,7 +147,7 @@ public class StreamProvider extends ContentProvider {
      *      java.lang.String[], java.lang.String, java.lang.String[],
      *      java.lang.String)
      */
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({ "fallthrough", "resource" })
     @Override
     public Cursor query(Uri uri, String[] proj, String sel, String[] selArgs, String ord) {
         Cursor cur;
@@ -186,16 +187,23 @@ public class StreamProvider extends ContentProvider {
     public ParcelFileDescriptor openFile(Uri uri, String mode)
         throws FileNotFoundException
     {
+        ParcelFileDescriptor fd;
+
         switch (uriMatcher.match(uri)) {
             case TAG_ITEM:
                 if (!"r".equals(mode)) {
                     throw new SecurityException("Write access forbidden");
                 }
-                return tags.openFile(uri);
+                fd = tags.openFile(uri);
+                break;
 
+            /// maybe just ignore it?
             default:
                 throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
+
+        Log.d(TAG, "file: " + fd);
+        return fd;
     }
 
     /**

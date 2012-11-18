@@ -10,11 +10,9 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.SimpleCursorAdapter.ViewBinder;
 import android.widget.TextView;
 
 
@@ -42,7 +40,8 @@ public class FeedFragment extends ListFragment {
         R.id.text_date
     };
 
-    private static final ViewBinder VIEW_BINDER = new ViewBinder() {
+    private static final SimpleCursorAdapter.ViewBinder VIEW_BINDER
+        = new SimpleCursorAdapter.ViewBinder() {
         @Override
         public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
             switch (view.getId()) {
@@ -63,35 +62,36 @@ public class FeedFragment extends ListFragment {
     // --- Loader Callbacks
     private final LoaderManager.LoaderCallbacks<Cursor> loader
         = new LoaderManager.LoaderCallbacks<Cursor>() {
-            private final String[] PROJ = new String[FROM.length + 1];
-            {
-                PROJ[0] = StreamContract.Feed.Columns.ID;
-                System.arraycopy(FROM, 0, PROJ, 1, FROM.length);
-            }
+        private final String[] PROJ = new String[FROM.length + 1];
+        {
+            PROJ[0] = StreamContract.Feed.Columns.ID;
+            System.arraycopy(FROM, 0, PROJ, 1, FROM.length);
+        }
 
-            @Override
-            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                return new CursorLoader(
-                    getActivity(),
-                    StreamContract.Feed.URI,
-                    PROJ,
-                    null,
-                    null,
-                    null);
-            }
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return new CursorLoader(
+                getActivity(),
+                StreamContract.Feed.URI,
+                PROJ,
+                null,
+                null,
+                null);
+        }
 
-            @Override
-            public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
-                Log.d(TAG, "load finished");
-                adapter.swapCursor(cursor);
-                setSelection(0);
-            }
+        @Override
+        public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
+            Log.d(TAG, "loader finished");
+            ((SimpleCursorAdapter) getListAdapter()).swapCursor(cursor);
+            setSelection(0);
+        }
 
-            @Override
-            public void onLoaderReset(Loader<Cursor> cursor) { adapter.swapCursor(null); }
-        };
-
-    SimpleCursorAdapter adapter;
+        @Override
+        public void onLoaderReset(Loader<Cursor> cursor) {
+            Log.d(TAG, "loader reset");
+            ((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
+        }
+    };
 
     /**
      * @see android.app.Fragment#onActivityCreated(android.os.Bundle)
@@ -105,21 +105,12 @@ public class FeedFragment extends ListFragment {
         setEmptyText(getString(R.string.no_feed));
 
         // Create the adapter
-        adapter = new SimpleCursorAdapter(
-                activity,
-                R.layout.list_item,
-                null,
-                FROM,
-                TO,
-                0);
+        SimpleCursorAdapter adapter
+            = new SimpleCursorAdapter(activity, R.layout.list_item, null, FROM, TO, 0);
         adapter.setViewBinder(VIEW_BINDER);
         setListAdapter(adapter);
 
-        getListView().setOnTouchListener(
-            new View.OnTouchListener() {
-                @Override public boolean onTouch(View v, MotionEvent event) {
-                    return activity.getActionBarMgr().getFlingDetector().onTouchEvent(event);
-                } });
+        activity.getActionBarMgr().attachFlingListener(getListView());
 
         // Initialize the loader
         getLoaderManager().initLoader(LOADER_ID, null, loader);
@@ -127,7 +118,7 @@ public class FeedFragment extends ListFragment {
         // Start the RefreshService
         RefreshService.pollOnce(activity);
 
-        Log.d(TAG, "activity created");
+        Log.d(TAG, "created");
     }
 
     /**
@@ -135,7 +126,7 @@ public class FeedFragment extends ListFragment {
      */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        Log.d(TAG, "onListItemClick'd for pos: " + position + " id: " + id);
+        Log.d(TAG, "click @" + position + ": " + id);
         Intent i = new Intent(getActivity(), PostActivity.class);
         i.putExtra(PostFragment.KEY_ID, id);
         startActivity(i);

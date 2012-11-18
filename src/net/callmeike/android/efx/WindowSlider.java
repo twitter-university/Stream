@@ -1,7 +1,5 @@
 package net.callmeike.android.efx;
 
-import java.util.List;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
@@ -10,7 +8,6 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
@@ -29,26 +26,24 @@ import android.widget.LinearLayout;
  *     Unable to instantiate application android.app.Application: java.lang.NullPointerException
  * Word has it that this is an Eclipse problem.  It is being addressed here:
  *     http://code.google.com/p/android/issues/detail?id=25869
- *
- * @param <T> menu item type
  */
-public abstract class MenuSlider<T> {
+public abstract class WindowSlider {
     private static final String TAG = "SLIDER";
 
-     boolean animating;
+     private boolean animating;
 
     final Activity activity;
 
-    private final int viewLayoutId;
     private final int duration;
     private final int overhang;
 
     private final Rect viewRect = new Rect();
     private final Point bounds = new Point();
 
-    GestureDetector gestureDetector;
+    private final FrameLayout menuView;
 
-    private FrameLayout menuView;
+    GestureDetector gestureDetector;
+    private boolean visible;
 
     /**
      * @param activity
@@ -56,56 +51,45 @@ public abstract class MenuSlider<T> {
      * @param duration
      * @param overhang
      */
-    public MenuSlider(
-            Activity activity,
-            int viewLayoutId,
-            int duration,
-            int overhang)
+    public WindowSlider(
+        Activity activity,
+        int viewLayoutId,
+        int duration,
+        int overhang)
     {
         this.activity = activity;
-        this.viewLayoutId = viewLayoutId;
         this.duration = duration;
         this.overhang = overhang;
+        this.menuView = getMenu(viewLayoutId);
         activity.getActionBar().setHomeButtonEnabled(true);
     }
 
     /**
-     * @return a list of menu items
+     * @param id
+     * @return the sub-view
      */
-    protected abstract List<T> getMenuItems();
-
-    /**
-     * @param item
-     */
-    protected abstract void handleSelection(T item);
-
-    /**
-     * @param gestureDetector
-     */
-    public void setGestureDetector(GestureDetector gestureDetector) {
-        this.gestureDetector = gestureDetector;
-        applyGestureDetector();
-    }
+    public View findViewById(int id) { return menuView.findViewById(id); }
 
     /**
      * @return boolean true if menu is visible
      */
-    public boolean getState() { return null != menuView; }
+    public boolean getVisible() { return visible; }
 
     /**
-     *
+     * @param vis
      */
-    public void toggleSlider() {
-        Log.d(TAG, "toggled: " + animating);
+    public void setVisible(boolean vis) {
+        Log.d(TAG, "set visible: " + visible + "(" + animating + ")");
+
+        if (vis == visible) { return; }
+        visible = vis;
+
         if (animating) { return; }
 
         setBounds();
 
-        if (null != menuView) { hideMenuView(true); }
-        else {
-            menuView = show();
-            applyGestureDetector();
-        }
+        if (visible) { show(); }
+        else { hideMenuView(true); }
     }
 
     /**
@@ -113,65 +97,57 @@ public abstract class MenuSlider<T> {
      */
     public void reset() {
         bounds.set(0, 0);
-        if (animating) { menuView = null; }
-        else if (null != menuView) { hideMenuView(false); }
+        if (animating) { visible = false; }
+        else if (visible) { hideMenuView(false); }
     }
 
-    void handleMenuSelection(T item) {
-        if (animating) { return; }
-        handleSelection(item);
-    }
-
-    void onShowComplete(FrameLayout menu) {
-        if (null == menuView) { hide(false, menu); }
+    void onShowComplete() {
+        if (!visible) { hide(false); }
         animating = false;
     }
 
-    void onHideComplete(FrameLayout menu) {
-        ((FrameLayout) activity.getWindow().getDecorView()).removeView(menu);
+    void onHideComplete() {
+        ((FrameLayout) activity.getWindow().getDecorView()).removeView(menuView);
         animating = false;
     }
 
     private void hideMenuView(boolean animate) {
-        FrameLayout menu = menuView;
-        menuView = null;
-        hide(animate, menu);
+        visible = false;
+        hide(animate);
     }
 
-    private void hide(boolean animate, final FrameLayout menu) {
+    private void hide(boolean animate) {
         animating = animate;
 
         moveFrame(
-                bounds.y,
-                0,
-                (!animating) ? null : new AnimationListener() {
-                    @Override public void onAnimationEnd(Animation a) { onHideComplete(menu); }
-                    @Override public void onAnimationRepeat(Animation a) { }
-                    @Override public void onAnimationStart(Animation a) { }
-                });
+            bounds.y,
+            0,
+            (!animating) ? null : new AnimationListener() {
+                @Override public void onAnimationEnd(Animation a) { onHideComplete(); }
+                @Override public void onAnimationRepeat(Animation a) { }
+                @Override public void onAnimationStart(Animation a) { }
+            });
 
-        if (!animating) { onHideComplete(menu); }
+        if (!animating) { onHideComplete(); }
     }
 
-    private FrameLayout show() {
+    private void show() {
         animating = true;
 
-        final FrameLayout menu = getMenu();
-
         LinearLayout actionBarFrame = moveFrame(
-                -bounds.y,
-                bounds.y,
-                new AnimationListener() {
-                    @Override public void onAnimationEnd(Animation a) { onShowComplete(menu); }
-                    @Override public void onAnimationRepeat(Animation a) { }
-                    @Override public void onAnimationStart(Animation a) { }
-                });
+            -bounds.y,
+            bounds.y,
+            new AnimationListener() {
+                @Override public void onAnimationEnd(Animation a) { onShowComplete(); }
+                @Override public void onAnimationRepeat(Animation a) { }
+                @Override public void onAnimationStart(Animation a) { }
+            });
 
         FrameLayout decorView = (FrameLayout) activity.getWindow().getDecorView();
-        decorView.addView(menu);
+        decorView.addView(menuView);
         decorView.bringChildToFront(actionBarFrame);
 
-        return menu;
+        visible = true;
     }
 
     private LinearLayout moveFrame(int delta, int to, AnimationListener animationListener) {
@@ -201,10 +177,10 @@ public abstract class MenuSlider<T> {
         v.startAnimation(ta);
     }
 
-    private FrameLayout getMenu() {
+    private FrameLayout getMenu(int id) {
         LayoutInflater inflater
             = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        FrameLayout menu = (FrameLayout) inflater.inflate(viewLayoutId, null);
+        FrameLayout menu = (FrameLayout) inflater.inflate(id, null);
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT,
@@ -213,26 +189,6 @@ public abstract class MenuSlider<T> {
         params.setMargins(0, bounds.x, 0, 0);
         menu.setLayoutParams(params);
 
-//        final ArrayAdapter<T> adapter = new ArrayAdapter<T>(activity, itemLayoutId);
-//        adapter.addAll(getMenuItems());
-//        menu.setAdapter(adapter);
-//
-//        menu.setOnItemClickListener(new OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> row, View v, int pos, long id) {
-//                handleMenuSelection(adapter.getItem(pos));
-//            } });
-
         return menu;
-    }
-
-    private void applyGestureDetector() {
-        if ((null != gestureDetector) && (null != menuView)) {
-            menuView.setOnTouchListener(
-                new View.OnTouchListener() {
-                    @Override public boolean onTouch(View v, MotionEvent event) {
-                        return gestureDetector.onTouchEvent(event);
-                    } });
-        }
     }
 }

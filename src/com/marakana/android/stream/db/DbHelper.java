@@ -1,6 +1,7 @@
 package com.marakana.android.stream.db;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import android.content.ContentValues;
@@ -85,18 +86,16 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        Log.d(TAG, "onCreate with sql: " + Feed.CREATE_TABLE);
-        db.execSQL(Feed.CREATE_TABLE);
+        createFeedDb(db);
         createTagsDb(db);
     }
-
 
     /**
      * @see android.database.sqlite.SQLiteOpenHelper#onUpgrade(android.database.sqlite.SQLiteDatabase, int, int)
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Temporary solution
+        Log.d(TAG, "db upgrade");
         db.execSQL(Feed.DROP_TABLE);
         db.execSQL(Tags.DROP_TABLE);
         onCreate(db);
@@ -107,32 +106,19 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     public SQLiteDatabase getDb() { return getWritableDatabase(); }
 
+    private void createFeedDb(SQLiteDatabase db) {
+        Log.d(TAG, "create feed db: " + Feed.CREATE_TABLE);
+        db.execSQL(Feed.CREATE_TABLE);
+    }
+
     private void createTagsDb(SQLiteDatabase db) {
-        Log.d(TAG, "onCreate with sql: " + Tags.CREATE_TABLE);
+        Log.d(TAG, "create tags db: " + Tags.CREATE_TABLE);
         db.execSQL(Tags.CREATE_TABLE);
 
-        final Integer local = Integer.valueOf(1);
         BufferedReader in = null;
-        ContentValues vals = new ContentValues();
         try {
             in = new BufferedReader(new InputStreamReader(context.getAssets().open(ASSET_TAGS)));
-            for (String line = ""; line != null; line = in.readLine()) {
-                String[] fields = line.split(",");
-                if ((4 > fields.length) || TextUtils.isEmpty(fields[0])) { continue; }
-
-                vals.clear();
-                vals.put(COL_TITLE, fields[0]);
-
-                if (!TextUtils.isEmpty(fields[3])) {
-                    vals.put(COL_TAGS_LOCAL, local);
-                    vals.put(COL_TAGS_ICON, fields[3]);
-                }
-
-                if (!TextUtils.isEmpty(fields[1])) { vals.put(COL_LINK, fields[1]); }
-                if (!TextUtils.isEmpty(fields[2])) { vals.put(COL_DESC, fields[2]); }
-
-                db.insert(TABLE_TAGS, null, vals);
-            }
+            readIcons(in, db);
         }
         catch (Exception e) {
             Log.e(TAG, "Failed initializing DB");
@@ -141,6 +127,29 @@ public class DbHelper extends SQLiteOpenHelper {
             if (null != in) {
                 try { in.close(); } catch (Exception e) { }
             }
+        }
+    }
+
+    private void readIcons(BufferedReader in, SQLiteDatabase db) throws IOException {
+        final ContentValues vals = new ContentValues();
+        final Integer local = Integer.valueOf(1);
+        for (String line = ""; line != null; line = in.readLine()) {
+            String[] fields = line.split(",");
+            if ((4 > fields.length) || TextUtils.isEmpty(fields[0])) { continue; }
+
+            vals.clear();
+            vals.put(COL_TITLE, fields[0]);
+            Log.d(TAG, "adding local icon: " + fields[0]);
+
+            if (!TextUtils.isEmpty(fields[3])) {
+                vals.put(COL_TAGS_LOCAL, local);
+                vals.put(COL_TAGS_ICON, fields[3]);
+            }
+
+            if (!TextUtils.isEmpty(fields[1])) { vals.put(COL_LINK, fields[1]); }
+            if (!TextUtils.isEmpty(fields[2])) { vals.put(COL_DESC, fields[2]); }
+
+            db.insert(TABLE_TAGS, null, vals);
         }
     }
 }
