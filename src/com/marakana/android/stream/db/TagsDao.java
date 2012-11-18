@@ -15,11 +15,14 @@
 */
 package com.marakana.android.stream.db;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -105,7 +108,7 @@ class TagsDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(DbHelper.TABLE_FEED);
+        qb.setTables(DbHelper.TABLE_TAGS);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 
@@ -115,6 +118,48 @@ class TagsDao {
     }
 
     public ParcelFileDescriptor openFile(Uri uri) throws FileNotFoundException {
-        return provider.openData(uri, "r");
+        long pk = ContentUris.parseId(uri);
+        if (0 > pk) { throw new IllegalArgumentException("Malformed URI: " + uri); }
+
+        String fName = null;
+        boolean local = false;
+        Cursor c = null;
+        try {
+            c = dbHelper.getDb().query(
+                    DbHelper.TABLE_TAGS,
+                    new String[] { DbHelper.COL_TAGS_LOCAL, DbHelper.COL_TAGS_LOCAL },
+                    PK_CONSTRAINT + pk,
+                    null,
+                    null,
+                    null,
+                    null);
+
+            if (1 != c.getCount()) { throw new FileNotFoundException("No tag for: " + uri); }
+
+
+            fName = c.getString(c.getColumnIndex(DbHelper.COL_TAGS_ICON));
+            local = 0 < c.getInt(c.getColumnIndex(DbHelper.COL_TAGS_LOCAL));
+        }
+        finally {
+            if (null != c) {
+                try { c.close(); } catch (Exception e) { }
+            }
+        }
+
+        ParcelFileDescriptor fd = null;
+        try {
+            if (local) {
+                fd = provider.getContext().getAssets().openFd(fName).getParcelFileDescriptor();
+            }
+            else {
+                fName = provider.getContext().getFilesDir() + "/" + fName;
+                fd = ParcelFileDescriptor.open(new File(fName), ParcelFileDescriptor.MODE_READ_ONLY);
+            }
+        }
+        catch (IOException e) {
+            new FileNotFoundException("failed opening : " + fName);
+        }
+
+        return fd;
     }
 }
