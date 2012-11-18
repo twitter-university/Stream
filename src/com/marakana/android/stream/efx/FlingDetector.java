@@ -15,6 +15,7 @@
 */
 package com.marakana.android.stream.efx;
 
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
@@ -25,6 +26,8 @@ import android.view.MotionEvent;
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
 public class FlingDetector extends GestureDetector.SimpleOnGestureListener {
+    private static final String TAG = "FLING";
+
     /** Fling direction */
     public static enum Direction { /** right */ RIGHT,  /** left */ LEFT; }
 
@@ -56,6 +59,7 @@ public class FlingDetector extends GestureDetector.SimpleOnGestureListener {
      */
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY) {
+        Log.d(TAG, "fling: " + vX + ", " + vY);
         if (Math.abs(vX) < 2 * Math.abs(vY)) { return false; }
         return listener.onFling((0 < Math.signum((double) vX)) ? Direction.RIGHT : Direction.LEFT);
     }
