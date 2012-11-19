@@ -7,16 +7,17 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 
 import com.marakana.android.stream.db.StreamContract;
+import com.marakana.android.stream.efx.IconMgr;
 import com.marakana.android.stream.svc.RefreshService;
 
 
@@ -29,33 +30,34 @@ public class FeedFragment extends ListFragment {
     private static final int LOADER_ID = 47;
 
     static final String[] FROM = {
+        StreamContract.Feed.Columns.ID,
         StreamContract.Feed.Columns.TITLE,
-        StreamContract.Feed.Columns.DESC,
         StreamContract.Feed.Columns.PUB_DATE
     };
 
     private static final int[] TO = {
+        R.id.image_tag,
         R.id.text_title,
-        R.id.text_description,
         R.id.text_date
     };
 
-    private static final SimpleCursorAdapter.ViewBinder VIEW_BINDER
+    private final SimpleCursorAdapter.ViewBinder VIEW_BINDER
         = new SimpleCursorAdapter.ViewBinder() {
         @Override
         public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
             switch (view.getId()) {
-                case R.id.text_description:
-                    String description = cursor.getString(columnIndex);
-                    ((TextView) view).setText(Html.fromHtml(description).toString());
-                    return true;
+                case R.id.image_tag:
+                    ((ImageView) view).setImageDrawable(iconMgr.getIcon(
+                            StreamContract.Tags.URI.buildUpon().appendPath("2").build()));
+                    break;
                 case R.id.text_date:
                     long timestamp = cursor.getLong(columnIndex);
                     ((TextView) view).setText(DateUtils.getRelativeTimeSpanString(timestamp));
-                    return true;
+                    break;
                 default:
                     return false;
             }
+            return true;
         }
     };
 
@@ -81,17 +83,19 @@ public class FeedFragment extends ListFragment {
 
         @Override
         public void onLoadFinished(Loader<Cursor> ldr, Cursor cursor) {
-            Log.d(TAG, "loader finished");
+            if (BuildConfig.DEBUG) { Log.d(TAG, "loader finished"); }
             ((SimpleCursorAdapter) getListAdapter()).swapCursor(cursor);
             setSelection(0);
         }
 
         @Override
         public void onLoaderReset(Loader<Cursor> cursor) {
-            Log.d(TAG, "loader reset");
-            ((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
+            if (BuildConfig.DEBUG) { Log.d(TAG, "loader reset"); }
+            ((SimpleCursorAdapter) getListAdapter()).swapCursor(null) ;
         }
     };
+
+    IconMgr iconMgr;
 
     /**
      * @see android.app.Fragment#onActivityCreated(android.os.Bundle)
@@ -101,6 +105,7 @@ public class FeedFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
 
         final MainActivity activity = (MainActivity) getActivity();
+        iconMgr = new IconMgr(activity);
 
         setEmptyText(getString(R.string.no_feed));
 
@@ -118,7 +123,7 @@ public class FeedFragment extends ListFragment {
         // Start the RefreshService
         RefreshService.pollOnce(activity);
 
-        Log.d(TAG, "created");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
     }
 
     /**
@@ -126,7 +131,7 @@ public class FeedFragment extends ListFragment {
      */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        Log.d(TAG, "click @" + position + ": " + id);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "click @" + position + ": " + id); }
         Intent i = new Intent(getActivity(), PostActivity.class);
         i.putExtra(PostFragment.KEY_ID, id);
         startActivity(i);

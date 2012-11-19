@@ -19,6 +19,8 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  *
@@ -59,7 +61,7 @@ public class FlingDetector extends GestureDetector.SimpleOnGestureListener {
      */
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY) {
-        Log.d(TAG, "fling: " + vX + ", " + vY);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "fling: " + vX + ", " + vY); }
         if (Math.abs(vX) < 2 * Math.abs(vY)) { return false; }
         return listener.onFling((0 < Math.signum((double) vX)) ? Direction.RIGHT : Direction.LEFT);
     }

@@ -17,6 +17,8 @@ import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  * MenuSlider
@@ -79,7 +81,7 @@ public abstract class WindowSlider {
      * @param vis
      */
     public void setVisible(boolean vis) {
-        Log.d(TAG, "set visible: " + visible + "(" + animating + ")");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "set visible: " + visible + "(" + animating + ")"); }
 
         if (vis == visible) { return; }
         visible = vis;

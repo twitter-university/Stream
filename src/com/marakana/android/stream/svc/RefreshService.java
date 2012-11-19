@@ -22,6 +22,7 @@ import android.util.Log;
 
 import com.marakana.android.parser.FeedParser;
 import com.marakana.android.parser.FeedParser.PostHandler;
+import com.marakana.android.stream.BuildConfig;
 import com.marakana.android.stream.db.StreamContract;
 
 
@@ -75,7 +76,9 @@ public class RefreshService extends IntentService {
                         INTENT_TAG,
                         new Intent(ctxt, RefreshService.class),
                         PendingIntent.FLAG_UPDATE_CURRENT));
-        Log.d(TAG, "peroidic polling started @" + RefreshService.POLL_INTERVAL);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "peroidic polling started @" + RefreshService.POLL_INTERVAL);
+        }
     }
 
     private class ContentValuesPostHandler implements PostHandler {
@@ -128,12 +131,12 @@ public class RefreshService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(TAG, "starting poll");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "starting poll"); }
 
         URL url = null;
         InputStream feed = null;
+        if (mutex.getAndSet(true)) { return; }
         try {
-            if (mutex.getAndSet(true)) { return; }
             added = 0;
 
             url = getFeedUrl();
@@ -147,7 +150,7 @@ public class RefreshService extends IntentService {
         }
         finally {
             mutex.set(false);
-            Log.d(TAG, "poll complete: " + added);
+            if (BuildConfig.DEBUG) { Log.d(TAG, "poll complete: " + added); }
             if (null != feed) {
                 try { feed.close(); } catch (IOException e) { }
             }

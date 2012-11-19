@@ -15,7 +15,8 @@
     <string name="open_link">Open Link</string>
     <string name="open">Open</string>
     <string name="share">Share</string>
-
+    <string name="label_tag">Tag</string>
+    
     <string name="tree_desc">tree&#8230;</string>
 
 </resources>

@@ -101,7 +101,7 @@ public class PostFragment extends WebViewFragment {
         // add the fling opener
         activity.getActionBarMgr().attachFlingListener(getWebView());
 
-        Log.d(TAG, "created");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
     }
 
     /**

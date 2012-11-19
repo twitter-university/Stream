@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  * DbHelper
@@ -95,7 +97,7 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        Log.d(TAG, "db upgrade");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "db upgrade"); }
         db.execSQL(Feed.DROP_TABLE);
         db.execSQL(Tags.DROP_TABLE);
         onCreate(db);
@@ -107,12 +109,12 @@ public class DbHelper extends SQLiteOpenHelper {
     public SQLiteDatabase getDb() { return getWritableDatabase(); }
 
     private void createFeedDb(SQLiteDatabase db) {
-        Log.d(TAG, "create feed db: " + Feed.CREATE_TABLE);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create feed db: " + Feed.CREATE_TABLE); }
         db.execSQL(Feed.CREATE_TABLE);
     }
 
     private void createTagsDb(SQLiteDatabase db) {
-        Log.d(TAG, "create tags db: " + Tags.CREATE_TABLE);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create tags db: " + Tags.CREATE_TABLE); }
         db.execSQL(Tags.CREATE_TABLE);
 
         BufferedReader in = null;
@@ -139,7 +141,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
             vals.clear();
             vals.put(COL_TITLE, fields[0]);
-            Log.d(TAG, "adding local icon: " + fields[0]);
+            if (BuildConfig.DEBUG) { Log.d(TAG, "adding local icon: " + fields[0]); }
 
             if (!TextUtils.isEmpty(fields[3])) {
                 vals.put(COL_TAGS_LOCAL, local);

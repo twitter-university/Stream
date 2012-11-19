@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  * StreamProvider
@@ -137,7 +139,7 @@ public class StreamProvider extends ContentProvider {
             uri = uri.buildUpon().appendPath(String.valueOf(pk)).build();
             getContext().getContentResolver().notifyChange(uri, null);
         }
-        Log.d(TAG, "inserted @" + uri + ": " + vals);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "inserted @" + uri + ": " + vals); }
 
         return uri;
     }
@@ -147,7 +149,7 @@ public class StreamProvider extends ContentProvider {
      *      java.lang.String[], java.lang.String, java.lang.String[],
      *      java.lang.String)
      */
-    @SuppressWarnings({ "fallthrough", "resource" })
+    @SuppressWarnings("fallthrough")
     @Override
     public Cursor query(Uri uri, String[] proj, String sel, String[] selArgs, String ord) {
         Cursor cur;
@@ -176,7 +178,7 @@ public class StreamProvider extends ContentProvider {
             count = cur.getCount();
         }
 
-        Log.d(TAG, "query @" + uri + ": " + count);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "query @" + uri + ": " + count); }
         return cur;
     }
 
@@ -202,7 +204,7 @@ public class StreamProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
 
-        Log.d(TAG, "file: " + fd);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "file: " + fd); }
         return fd;
     }
 
