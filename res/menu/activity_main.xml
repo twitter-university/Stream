@@ -2,9 +2,9 @@
 
     <item
         android:id="@+id/menu_refresh"
-        android:title="@string/refresh_data"
         android:icon="@android:drawable/ic_menu_rotate"
-        android:showAsAction="always">
+        android:showAsAction="ifRoom"
+        android:title="@string/refresh_data">
     </item>
     <item
         android:id="@+id/menu_settings"

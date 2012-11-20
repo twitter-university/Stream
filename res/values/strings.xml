@@ -1,12 +1,22 @@
 <resources>
 
     <string name="app_name">Stream</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
+
+    <!-- main activity -->
     <string name="title_activity_main">Marakana Stream</string>
+    <string name="no_feed">Just a sec&#8230;</string>
+    <string name="label_title">Title</string>
+    <string name="label_desc">Description</string>
+    <string name="label_date">Date</string>
+
+    <!-- menus -->
+    <string name="menu_settings">Settings</string>
     <string name="refresh_data">Refresh Data</string>
     <string name="open_link">Open Link</string>
     <string name="open">Open</string>
     <string name="share">Share</string>
+    <string name="label_tag">Tag</string>
+    
+    <string name="tree_desc">tree&#8230;</string>
 
 </resources>
