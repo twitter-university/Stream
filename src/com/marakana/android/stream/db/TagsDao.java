@@ -152,11 +152,14 @@ class TagsDao {
         ParcelFileDescriptor fd = null;
         try {
             if (local) {
+                // !!! This doesn't work!
+                // the file opens, but the reader on the far end can't read the stream
                 fd = provider.getContext().getAssets().openFd(fName).getParcelFileDescriptor();
             }
             else {
-                fName = provider.getContext().getFilesDir() + "/" + fName;
-                fd = ParcelFileDescriptor.open(new File(fName), ParcelFileDescriptor.MODE_READ_ONLY);
+                fd = ParcelFileDescriptor.open(
+                        new File(provider.getContext().getFilesDir(), fName),
+                        ParcelFileDescriptor.MODE_READ_ONLY);
             }
         }
         catch (IOException e) {

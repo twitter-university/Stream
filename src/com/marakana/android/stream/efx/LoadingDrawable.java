@@ -15,7 +15,6 @@
  */
 package com.marakana.android.stream.efx;
 
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -23,6 +22,8 @@ import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.content.Loader;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
@@ -64,15 +65,14 @@ public class LoadingDrawable
          */
         @Override
         public BitmapDrawable loadInBackground() {
-            BitmapDrawable icon = null;
             InputStream in = null;
+            Bitmap icon = null;
             try {
-                in = new BufferedInputStream(getContext().getContentResolver().openInputStream(uri));
-                icon = new BitmapDrawable((android.content.res.Resources) null, in);
-                loaded = true;
+                icon = BitmapFactory.decodeStream(
+                        getContext().getContentResolver().openInputStream(uri));
             }
             catch (FileNotFoundException e) {
-                Log.w(TAG, "Failed to load icon: " + uri);
+                Log.w(TAG, "Failed loading icon: " + uri, e);
             }
             finally {
                 if (null != in) {
@@ -80,7 +80,13 @@ public class LoadingDrawable
                 }
             }
 
-            return icon;
+            BitmapDrawable iconDrawable = null;
+            if (null != icon) {
+                iconDrawable = new BitmapDrawable(getContext().getResources(), icon);
+                loaded = true;
+            }
+
+            return iconDrawable;
         }
 
         /**
