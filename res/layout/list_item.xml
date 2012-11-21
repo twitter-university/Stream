@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingLeft="5dp" >
+    android:paddingRight="9dp" >
 
     <ImageView
         android:id="@+id/image_tag"
@@ -10,8 +10,8 @@
         android:layout_height="32dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:padding="4dp"
-        android:contentDescription="@string/label_tag"/>
+        android:contentDescription="@string/label_tag"
+        android:padding="5dp" />
 
     <TextView
         android:id="@+id/text_date"
@@ -20,10 +20,9 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:text="@string/label_date"
+        android:textColor="@android:color/secondary_text_light"
         android:textSize="10sp"
-        android:textStyle="italic"
-        android:paddingRight="4dp"
-        android:textColor="@android:color/secondary_text_light" />
+        android:textStyle="italic" />
 
     <TextView
         android:id="@+id/text_title"
@@ -31,6 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/text_date"
         android:layout_toRightOf="@id/image_tag"
+        android:paddingRight="9dp"
         android:text="@string/label_title" />
 
 </RelativeLayout>
