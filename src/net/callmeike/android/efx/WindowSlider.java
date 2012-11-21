@@ -146,6 +146,14 @@ public abstract class WindowSlider {
             });
 
         FrameLayout decorView = (FrameLayout) activity.getWindow().getDecorView();
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT,
+                Gravity.LEFT);
+        params.setMargins(0, bounds.x, overhang, 0);
+        menuView.setLayoutParams(params);
+
         decorView.addView(menuView);
         decorView.bringChildToFront(actionBarFrame);
 
@@ -168,6 +176,7 @@ public abstract class WindowSlider {
 
     private void setBounds() {
         activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(viewRect);
+        int x = activity.getActionBar().getHeight(); //
         bounds.set(viewRect.top, viewRect.right - overhang);
     }
 
@@ -180,17 +189,8 @@ public abstract class WindowSlider {
     }
 
     private FrameLayout getMenu(int id) {
-        LayoutInflater inflater
-            = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        FrameLayout menu = (FrameLayout) inflater.inflate(id, null);
-
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT,
-                Gravity.LEFT);
-        params.setMargins(0, bounds.x, 0, 0);
-        menu.setLayoutParams(params);
-
-        return menu;
+        return (FrameLayout)
+            ((LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+                .inflate(id, null);
     }
 }

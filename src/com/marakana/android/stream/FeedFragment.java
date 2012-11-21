@@ -118,7 +118,7 @@ public class FeedFragment extends ListFragment {
 
         ListView list = getListView();
         list.setDivider(getResources().getDrawable(R.drawable.feed_divider));
-        list.setDividerHeight(2);
+        list.setDividerHeight(1);
 
         activity.getActionBarMgr().attachFlingListener(getListView());
 

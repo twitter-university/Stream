@@ -33,6 +33,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  *
@@ -126,7 +128,7 @@ public class LoadingDrawable
      */
     @Override
     public void onLoadFinished(Loader<BitmapDrawable> ldr, BitmapDrawable bitmap) {
-        Log.d(TAG, "loaded bitmap: " + bitmap);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "bitmap loaded: " + bitmap); }
 
         if (icon != bitmap) {
             icon = bitmap;
@@ -144,7 +146,7 @@ public class LoadingDrawable
      */
     @Override
     public void onLoaderReset(Loader<BitmapDrawable> ldr) {
-        Log.d(TAG, "loader reset!");
+        if (BuildConfig.DEBUG) { Log.d(TAG, "loader reset!"); }
     }
 
     /**

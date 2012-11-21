@@ -1,0 +1,19 @@
+= TTD
+
+== Things to do:
+
+* Replace RSS w/Atom
+* Populate the slider menu
+* TESTING!!!!!
+* Styles for target devices: Galaxy, 7, and TV
+
+== Known bugs
+
+* Icons sometimes don't fill in
+* After rotation, icons don't show at all
+
+== Legal
+
+Please see ++NOTICE++ file in this directory for copyright, license terms, and legal disclaimers.
+
+Copyright © 2012 Marakana Inc.

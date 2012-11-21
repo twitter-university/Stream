@@ -23,6 +23,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 
+import com.marakana.android.stream.BuildConfig;
+
 
 /**
  *
@@ -60,7 +62,7 @@ public class IconMgr {
 
         if (load) { ctxt.getLoaderManager().initLoader(icon.hashCode(), null, icon); }
 
-        Log.d(TAG, "Got icon: " + icon + ": " + uri);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "Got icon: " + icon + ": " + uri); }
 
         return icon;
     }

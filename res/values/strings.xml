@@ -6,7 +6,6 @@
     <string name="title_activity_main">Marakana Stream</string>
     <string name="no_feed">Just a sec&#8230;</string>
     <string name="label_title">Title</string>
-    <string name="label_desc">Description</string>
     <string name="label_date">Date</string>
 
     <!-- menus -->

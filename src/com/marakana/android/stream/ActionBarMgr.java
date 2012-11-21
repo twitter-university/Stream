@@ -1,15 +1,22 @@
 package com.marakana.android.stream;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import net.callmeike.android.efx.WindowSlider;
-
 import com.marakana.android.stream.svc.RefreshService;
 import com.marakana.android.stream.efx.FlingDetector;
 import com.marakana.android.stream.efx.FlingDetector.Direction;
@@ -21,9 +28,41 @@ import com.marakana.android.stream.efx.FlingDetector.Direction;
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
+
+
+/**
+ * ActionBarMgr
+ *
+ */
 public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingListener {
+    private static final String TAG = "BARMGR";
+
     private static final int MENU_DURATION = 300;
     private static final int MENU_OVERHANG = 128;
+
+    final static class MenuElement {
+        private final String label;
+        private final Class<?> target;
+
+        public MenuElement(String label, Class<?> target) {
+            this.label = label;
+            this.target = target;
+        }
+
+        public Class<?> getTarget() { return target; }
+
+        @Override public String toString() { return label; }
+    }
+
+    private static final List<MenuElement> menuItems;
+    static {
+        List<MenuElement> l = new ArrayList<MenuElement>();
+        l.add(new MenuElement("Home", null));
+        l.add(new MenuElement("Feed", MainActivity.class));
+        l.add(new MenuElement("Tags", null));
+        l.add(new MenuElement("Authors", null));
+        menuItems = Collections.unmodifiableList(l);
+    }
 
 
     private final Activity activity;
@@ -38,7 +77,19 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
 
         activity.getActionBar().setDisplayHomeAsUpEnabled(enabled);
 
-        attachFlingListener(findViewById(R.id.tree_menu));
+        ListView menuView = (ListView) findViewById(R.id.menu_list);
+        final ArrayAdapter<MenuElement> adapter
+            = new ArrayAdapter<MenuElement>(activity, R.layout.menu_item);
+        adapter.addAll(menuItems);
+
+        menuView.setAdapter(adapter);
+        menuView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> row, View v, int pos, long id) {
+                handleMenuSelection(adapter.getItem(pos));
+            } });
+
+        attachFlingListener(menuView);
     }
 
     /**
@@ -79,7 +130,7 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
         switch (item.getItemId()) {
             // called when the Home (Up) button is pressed in the Action Bar.
             case android.R.id.home:
-                setVisible(!getVisible());
+                toggleSlider(!getVisible());
                 break;
             case R.id.menu_refresh:
                 RefreshService.pollOnce(activity);
@@ -102,8 +153,22 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
         return true;
     }
 
+    void handleMenuSelection(MenuElement item) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "menu selected: " + item); }
+        Class<?> target = item.getTarget();
+        if (null == target) { return; }
+        Intent i = new Intent(activity, target);
+        i.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        activity.startActivity(i);
+        reset();
+    }
+
     private boolean toggleSlider(Direction dir) {
-        boolean opening = (dir == FlingDetector.Direction.RIGHT);
+        return toggleSlider(dir == FlingDetector.Direction.RIGHT);
+    }
+
+    private boolean toggleSlider(boolean opening) {
         if (getVisible() == opening) { return false; }
         setVisible(opening);
         return true;

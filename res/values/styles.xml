@@ -2,9 +2,4 @@
 
     <style name="AppTheme" parent="android:Theme.Light" />
 
-    <style name="treeViewListStyle" parent="@android:attr/listViewStyle">
-        <item name="android:background">@android:color/white</item>
-        <item name="android:divider">@drawable/divider</item>
-    </style>
-
 </resources>
