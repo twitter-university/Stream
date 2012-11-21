@@ -15,6 +15,7 @@
  */
 package com.marakana.android.stream.db;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -170,9 +171,10 @@ class TagsDao {
         InputStream in = null;
         OutputStream out = null;
         try {
-            in = assets.open(asset);
+            in = new BufferedInputStream(assets.open(asset));
             out = new BufferedOutputStream(new FileOutputStream(dst));
-            copyFile(in, out);
+            int n = copyFile(in, out);
+            Log.d(TAG, "asset: " + asset + " @" + n);
         }
         catch(IOException e) {
             Log.e("tag", "Failed to copy asset: " + asset, e);
@@ -187,10 +189,15 @@ class TagsDao {
         }
     }
 
-    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+    private static int copyFile(InputStream in, OutputStream out) throws IOException {
+        int length = 0;
         int n;
         byte[] buffer = new byte[1024];
-        while (0 >= (n = in.read(buffer))) { out.write(buffer, 0, n); }
+        while (0 <= (n = in.read(buffer))) {
+            out.write(buffer, 0, n);
+            length += n;
+        }
+        return length;
     }
 
 

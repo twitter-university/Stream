@@ -30,6 +30,9 @@ import android.util.Log;
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
 public class IconMgr {
+    private static final String TAG = "ICONMGR";
+
+
     private final Map<Uri, LoadingDrawable> cache = new WeakHashMap<Uri, LoadingDrawable>();
 
     private final Activity ctxt;
@@ -57,7 +60,7 @@ public class IconMgr {
 
         if (load) { ctxt.getLoaderManager().initLoader(icon.hashCode(), null, icon); }
 
-        Log.d("ICON", "Got icon: " + icon + ": " + uri);
+        Log.d(TAG, "Got icon: " + icon + ": " + uri);
 
         return icon;
     }
