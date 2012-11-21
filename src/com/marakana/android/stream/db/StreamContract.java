@@ -83,6 +83,8 @@ public final class StreamContract {
             public static final String DESC = "description";
             /** article link */
             public static final String LINK = "link";
+            /** temporary: idx for article icon */
+            public static final String ICON = "icon";
 
             /** Special column */
             public static final String MAX_PUB_DATE = "max_pub_date";

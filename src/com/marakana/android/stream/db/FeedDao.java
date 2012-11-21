@@ -20,11 +20,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.marakana.android.stream.BuildConfig;
 
 
 /**
@@ -35,30 +39,56 @@ import android.util.Log;
 class FeedDao {
     private static final String TAG = "FEED-DAO";
 
+    private static final String TABLE_FEED = "feed";
+
+    private static final String COL_ID = "id";
+    private static final String COL_TITLE = "title";
+    private static final String COL_LINK = "link";
+    private static final String COL_FEED_AUTHOR = "author";
+    private static final String COL_FEED_PUB_DATE = "pub_date";
+    private static final String COL_ICON = "icon";
+    private static final String COL_DESC = "description";
+
+    private static final String CREATE_TABLE
+        = "CREATE TABLE " + TABLE_FEED + " ("
+            + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
+            + COL_TITLE + " text,"
+            + COL_LINK + " text,"
+            + COL_FEED_AUTHOR + " text,"
+            + COL_FEED_PUB_DATE + " integer,"
+            + COL_DESC + " text,"
+            + COL_ICON + " integer)";
+
+    private static final String DROP_TABLE
+        = "DROP TABLE IF EXISTS " + TABLE_FEED;
+
     private static final String DEFAULT_SORT = StreamContract.Feed.Columns.PUB_DATE + " DESC";
-    private static final String PK_CONSTRAINT = DbHelper.COL_ID + "=";
+    private static final String PK_CONSTRAINT = COL_ID + "=";
 
     private static final Map<String, ColumnDef> COL_MAP;
     static {
         Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
         m.put(
             StreamContract.Feed.Columns.ID,
-            new ColumnDef(DbHelper.COL_ID, ColumnDef.Type.LONG));
+            new ColumnDef(COL_ID, ColumnDef.Type.LONG));
         m.put(
             StreamContract.Feed.Columns.TITLE,
-            new ColumnDef(DbHelper.COL_TITLE, ColumnDef.Type.STRING));
+            new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Feed.Columns.LINK,
-            new ColumnDef(DbHelper.COL_LINK, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Feed.Columns.DESC,
-            new ColumnDef(DbHelper.COL_DESC, ColumnDef.Type.STRING));
+            new ColumnDef(COL_LINK, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Feed.Columns.AUTHOR,
-            new ColumnDef(DbHelper.COL_FEED_AUTHOR, ColumnDef.Type.STRING));
+            new ColumnDef(COL_FEED_AUTHOR, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Feed.Columns.PUB_DATE,
-            new ColumnDef(DbHelper.COL_FEED_PUB_DATE, ColumnDef.Type.LONG));
+            new ColumnDef(COL_FEED_PUB_DATE, ColumnDef.Type.LONG));
+        m.put(
+            StreamContract.Feed.Columns.ICON,
+            new ColumnDef(COL_ICON, ColumnDef.Type.LONG));
+        m.put(
+            StreamContract.Feed.Columns.DESC,
+            new ColumnDef(COL_DESC, ColumnDef.Type.STRING));
          COL_MAP = Collections.unmodifiableMap(m);
     }
 
@@ -67,28 +97,40 @@ class FeedDao {
         Map<String, String> m = new HashMap<String, String>();
         m.put(
             StreamContract.Feed.Columns.ID,
-            DbHelper.COL_ID + " AS " + StreamContract.Feed.Columns.ID);
+            COL_ID + " AS " + StreamContract.Feed.Columns.ID);
         m.put(
             StreamContract.Feed.Columns.TITLE,
-            DbHelper.COL_TITLE + " AS " + StreamContract.Feed.Columns.TITLE);
-        m.put(
-            StreamContract.Feed.Columns.DESC,
-            DbHelper.COL_DESC + " AS " + StreamContract.Feed.Columns.DESC);
+            COL_TITLE + " AS " + StreamContract.Feed.Columns.TITLE);
         m.put(
             StreamContract.Feed.Columns.LINK,
-            DbHelper.COL_LINK + " AS " + StreamContract.Feed.Columns.LINK);
+            COL_LINK + " AS " + StreamContract.Feed.Columns.LINK);
         m.put(
             StreamContract.Feed.Columns.AUTHOR,
-            DbHelper.COL_FEED_AUTHOR + " AS " + StreamContract.Feed.Columns.AUTHOR);
+            COL_FEED_AUTHOR + " AS " + StreamContract.Feed.Columns.AUTHOR);
         m.put(
             StreamContract.Feed.Columns.PUB_DATE,
-            DbHelper.COL_FEED_PUB_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
+            COL_FEED_PUB_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
+        m.put(
+            StreamContract.Feed.Columns.ICON,
+            COL_ICON + " AS " + StreamContract.Feed.Columns.ICON);
+        m.put(
+            StreamContract.Feed.Columns.DESC,
+            COL_DESC + " AS " + StreamContract.Feed.Columns.DESC);
         m.put(StreamContract.Feed.Columns.MAX_PUB_DATE,
             "MAX(" + StreamContract.Feed.Columns.PUB_DATE + ") AS "
                 + StreamContract.Feed.Columns.PUB_DATE);
-        m.put(DbHelper.COL_TAGS_ICON, DbHelper.COL_TAGS_ICON);
          COL_AS_MAP = Collections.unmodifiableMap(m);
     }
+
+    static void dropTable(@SuppressWarnings("unused") Context context, SQLiteDatabase db) {
+        db.execSQL(DROP_TABLE);
+    }
+
+    static void initDb(@SuppressWarnings("unused") Context context, SQLiteDatabase db) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create feed db: " + CREATE_TABLE); }
+        db.execSQL(CREATE_TABLE);
+    }
+
 
     private final DbHelper dbHelper;
     @SuppressWarnings("unused")
@@ -102,7 +144,7 @@ class FeedDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(DbHelper.TABLE_FEED, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE_FEED, null, vals); }
         catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
         return pk;
     }
@@ -113,7 +155,7 @@ class FeedDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(DbHelper.TABLE_FEED);
+        qb.setTables(TABLE_FEED);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 

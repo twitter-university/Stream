@@ -22,8 +22,8 @@ public class FeedParser {
     /** XML tag: item */ public static final String TAG_ITEM = "item";
     /** XML tag: title */ public static final String TAG_TITLE = "title";
     /** XML tag: publication date */ public static final String TAG_PUB_DATE = "pubDate";
-    /** XML tag: description */ public static final String TAG_DESCRIPTION = "description";
     /** XML tag: link */ public static final String TAG_LINK = "link";
+    /** XML tag: description */ public static final String TAG_DESCRIPTION = "description";
 
     /** Post handler */
     public interface PostHandler {
@@ -35,10 +35,12 @@ public class FeedParser {
         void setAuthor(String author);
         /** @param pubDate */
         void setPubDate(String pubDate);
-        /** @param desc  */
-        void setDescription(String  desc);
         /** @param link */
         void setLink(String link);
+        /** @param icon */
+        void setIcon(String icon);
+        /** @param desc  */
+        void setDescription(String  desc);
     }
 
     private static abstract class Element {

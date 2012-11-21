@@ -126,8 +126,13 @@ public class LoadingDrawable
      */
     @Override
     public void onLoadFinished(Loader<BitmapDrawable> ldr, BitmapDrawable bitmap) {
+        Log.d(TAG, "loaded bitmap: " + bitmap);
         icon = bitmap;
-        invalidateSelf();
+        if (null != bitmap) {
+            icon.setBounds(getBounds());
+            icon.setVisible(true, true);
+            invalidateSelf();
+        }
     }
 
     /**
@@ -135,7 +140,7 @@ public class LoadingDrawable
      */
     @Override
     public void onLoaderReset(Loader<BitmapDrawable> ldr) {
-
+        Log.d(TAG, "loader reset!");
     }
 
     /**

@@ -15,21 +15,32 @@
  */
 package com.marakana.android.stream.db;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.marakana.android.stream.BuildConfig;
 
 
 /**
@@ -40,28 +51,49 @@ import android.util.Log;
 class TagsDao {
     private static final String TAG = "TAGS-DAO";
 
+    private static final String TABLE_TAGS = "tags";
+
+    private static final String COL_ID = "id";
+    private static final String COL_TITLE = "title";
+    private static final String COL_LINK = "link";
+    private static final String COL_DESC = "description";
+    private static final String COL_TAGS_ICON = "_data";
+
+    private static final String ASSET_TAGS = "tags.csv";
+
+    private static final String CREATE_TABLE
+        = "CREATE TABLE " + TABLE_TAGS + " ("
+            + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
+            + COL_TITLE + " text,"
+            + COL_LINK + " text,"
+            + COL_DESC + " text,"
+            + COL_TAGS_ICON + " text)";
+
+    private static final String DROP_TABLE
+        = "DROP TABLE IF EXISTS " + TABLE_TAGS;
+
     private static final String DEFAULT_SORT = StreamContract.Feed.Columns.PUB_DATE + " DESC";
 
-    private static final String PK_CONSTRAINT = DbHelper.COL_ID + "=";
+    private static final String PK_CONSTRAINT = COL_ID + "=";
 
     private static final Map<String, ColumnDef> COL_MAP;
     static {
         Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
         m.put(
                 StreamContract.Tags.Columns.ID,
-                new ColumnDef(DbHelper.COL_ID, ColumnDef.Type.LONG));
+                new ColumnDef(COL_ID, ColumnDef.Type.LONG));
         m.put(
                 StreamContract.Tags.Columns.TITLE,
-                new ColumnDef(DbHelper.COL_TITLE, ColumnDef.Type.STRING));
+                new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
         m.put(
                 StreamContract.Tags.Columns.LINK,
-                new ColumnDef(DbHelper.COL_LINK, ColumnDef.Type.STRING));
+                new ColumnDef(COL_LINK, ColumnDef.Type.STRING));
         m.put(
                 StreamContract.Tags.Columns.DESC,
-                new ColumnDef(DbHelper.COL_DESC, ColumnDef.Type.STRING));
+                new ColumnDef(COL_DESC, ColumnDef.Type.STRING));
         m.put(
-                DbHelper.COL_TAGS_ICON,
-                new ColumnDef(DbHelper.COL_TAGS_ICON, ColumnDef.Type.STRING));
+                COL_TAGS_ICON,
+                new ColumnDef(COL_TAGS_ICON, ColumnDef.Type.STRING));
         COL_MAP = Collections.unmodifiableMap(m);
     }
 
@@ -70,19 +102,98 @@ class TagsDao {
         Map<String, String> m = new HashMap<String, String>();
         m.put(
                 StreamContract.Tags.Columns.ID,
-                DbHelper.COL_ID + " AS " + StreamContract.Tags.Columns.ID);
+                COL_ID + " AS " + StreamContract.Tags.Columns.ID);
         m.put(
                 StreamContract.Tags.Columns.TITLE,
-                DbHelper.COL_TITLE + " AS " + StreamContract.Tags.Columns.TITLE);
+                COL_TITLE + " AS " + StreamContract.Tags.Columns.TITLE);
         m.put(
                 StreamContract.Tags.Columns.DESC,
-                DbHelper.COL_DESC + " AS " + StreamContract.Tags.Columns.DESC);
+                COL_DESC + " AS " + StreamContract.Tags.Columns.DESC);
         m.put(
                 StreamContract.Tags.Columns.LINK,
-                DbHelper.COL_LINK + " AS " + StreamContract.Tags.Columns.LINK);
-        m.put(DbHelper.COL_TAGS_ICON, DbHelper.COL_TAGS_ICON);
+                COL_LINK + " AS " + StreamContract.Tags.Columns.LINK);
+        m.put(COL_TAGS_ICON, COL_TAGS_ICON);
         COL_AS_MAP = Collections.unmodifiableMap(m);
     }
+
+    static void dropTable(@SuppressWarnings("unused") Context context, SQLiteDatabase db) {
+        db.execSQL(DROP_TABLE);
+    }
+
+    static void initDb(Context context, SQLiteDatabase db) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create tags db: " + CREATE_TABLE); }
+        db.execSQL(CREATE_TABLE);
+
+        AssetManager assets = context.getAssets();
+
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new InputStreamReader(assets.open(ASSET_TAGS)));
+            readIcons(context, assets, in, db);
+        }
+        catch (Exception e) {
+            Log.e(TAG, "Failed initializing DB");
+        }
+        finally {
+            if (null != in) {
+                try { in.close(); } catch (Exception e) { }
+            }
+        }
+    }
+
+    static void readIcons(Context ctxt, AssetManager assets, BufferedReader in, SQLiteDatabase db)
+            throws IOException
+    {
+        final ContentValues vals = new ContentValues();
+        for (String line = ""; line != null; line = in.readLine()) {
+            String[] fields = line.split(",");
+            if ((4 > fields.length) || TextUtils.isEmpty(fields[0])) { continue; }
+
+            vals.clear();
+            vals.put(COL_TITLE, fields[0]);
+            if (BuildConfig.DEBUG) { Log.d(TAG, "adding local icon: " + fields[0]); }
+
+            if (!TextUtils.isEmpty(fields[3])) {
+                vals.put(COL_TAGS_ICON, fields[3]);
+                copyAsset(assets, fields[3], new File(ctxt.getFilesDir(), fields[3]));
+            }
+
+            if (!TextUtils.isEmpty(fields[1])) { vals.put(COL_LINK, fields[1]); }
+            if (!TextUtils.isEmpty(fields[2])) { vals.put(COL_DESC, fields[2]); }
+
+            db.insert(TABLE_TAGS, null, vals);
+        }
+    }
+
+    @SuppressWarnings("resource")
+    private static void copyAsset(AssetManager assets, String asset, File dst) {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = assets.open(asset);
+            out = new BufferedOutputStream(new FileOutputStream(dst));
+            copyFile(in, out);
+        }
+        catch(IOException e) {
+            Log.e("tag", "Failed to copy asset: " + asset, e);
+        }
+        finally {
+            if (null != in) {
+                try { in.close(); } catch (Exception e) { }
+            }
+            if (null != out) {
+                try { out.close(); } catch (Exception e) { }
+            }
+        }
+    }
+
+    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        int n;
+        byte[] buffer = new byte[1024];
+        while (0 >= (n = in.read(buffer))) { out.write(buffer, 0, n); }
+    }
+
+
 
     private final DbHelper dbHelper;
     private final StreamProvider provider;
@@ -96,7 +207,7 @@ class TagsDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(DbHelper.TABLE_TAGS, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE_TAGS, null, vals); }
         catch (SQLException e) { Log.w(TAG, "Insert failed: ", e); }
         return pk;
     }
@@ -107,7 +218,7 @@ class TagsDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(DbHelper.TABLE_TAGS);
+        qb.setTables(TABLE_TAGS);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 
@@ -121,12 +232,11 @@ class TagsDao {
         if (0 > pk) { throw new IllegalArgumentException("Malformed URI: " + uri); }
 
         String fName = null;
-        boolean local = false;
         Cursor c = null;
         try {
             c = dbHelper.getDb().query(
-                    DbHelper.TABLE_TAGS,
-                    new String[] { DbHelper.COL_TAGS_ICON, DbHelper.COL_TAGS_LOCAL },
+                    TABLE_TAGS,
+                    new String[] { COL_TAGS_ICON },
                     PK_CONSTRAINT + pk,
                     null,
                     null,
@@ -136,8 +246,7 @@ class TagsDao {
             if (1 != c.getCount()) { throw new FileNotFoundException("No tag for: " + uri); }
             c.moveToFirst();
 
-            fName = c.getString(c.getColumnIndex(DbHelper.COL_TAGS_ICON));
-            local = 0 < c.getInt(c.getColumnIndex(DbHelper.COL_TAGS_LOCAL));
+            fName = c.getString(c.getColumnIndex(COL_TAGS_ICON));
         }
         catch (Exception e) {
             Log.e(TAG, "WTF?", e);
@@ -148,21 +257,14 @@ class TagsDao {
             }
         }
 
-        Log.d(TAG, "Opening (" + local + "): " + fName);
+        Log.d(TAG, "Opening: " + fName);
         ParcelFileDescriptor fd = null;
         try {
-            if (local) {
-                // !!! This doesn't work!
-                // the file opens, but the reader on the far end can't read the stream
-                fd = provider.getContext().getAssets().openFd(fName).getParcelFileDescriptor();
-            }
-            else {
-                fd = ParcelFileDescriptor.open(
-                        new File(provider.getContext().getFilesDir(), fName),
-                        ParcelFileDescriptor.MODE_READ_ONLY);
-            }
+            fd = ParcelFileDescriptor.open(
+                    new File(provider.getContext().getFilesDir(), fName),
+                    ParcelFileDescriptor.MODE_READ_ONLY);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             throw new FileNotFoundException("Failed opening : " + fName);
         }
         Log.d(TAG, "Opened file: " + fd);

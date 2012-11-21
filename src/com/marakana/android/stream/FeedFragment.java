@@ -30,28 +30,29 @@ public class FeedFragment extends ListFragment {
     private static final int LOADER_ID = 47;
 
     static final String[] FROM = {
-        StreamContract.Feed.Columns.ID,
         StreamContract.Feed.Columns.TITLE,
-        StreamContract.Feed.Columns.PUB_DATE
+        StreamContract.Feed.Columns.PUB_DATE,
+        StreamContract.Feed.Columns.ICON
     };
 
     private static final int[] TO = {
-        R.id.image_tag,
-        R.id.text_title,
-        R.id.text_date
-    };
+         R.id.text_title,
+        R.id.text_date,
+        R.id.image_tag
+   };
 
     private final SimpleCursorAdapter.ViewBinder VIEW_BINDER
         = new SimpleCursorAdapter.ViewBinder() {
         @Override
-        public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+        public boolean setViewValue(View view, Cursor cur, int idx) {
             switch (view.getId()) {
                 case R.id.image_tag:
-                    ((ImageView) view).setImageDrawable(iconMgr.getIcon(
-                            StreamContract.Tags.URI.buildUpon().appendPath("2").build()));
+                    ((ImageView) view).setImageDrawable(
+                            iconMgr.getIcon(StreamContract.Tags.URI.buildUpon()
+                                    .appendPath(cur.getString(idx)).build()));
                     break;
                 case R.id.text_date:
-                    long timestamp = cursor.getLong(columnIndex);
+                    long timestamp = cur.getLong(idx);
                     ((TextView) view).setText(DateUtils.getRelativeTimeSpanString(timestamp));
                     break;
                 default:

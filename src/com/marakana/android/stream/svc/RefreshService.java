@@ -90,14 +90,31 @@ public class RefreshService extends IntentService {
         public ContentValuesPostHandler() {}
 
         @Override
-        public void finish() { writePost(vals); }
+        public void finish() {
+            // !!! Major hack, just to get us some pretty icons, for now
+            if (!vals.containsKey(StreamContract.Feed.Columns.ICON)) {
+                vals.put(
+                        StreamContract.Feed.Columns.ICON,
+                        Long.valueOf((long) (Math.floor(Math.random() * 18) + 1)));
+            }
+            writePost(vals);
+            vals.clear();
+        }
 
         @Override
         public void setTitle(String title) {
             vals.put(StreamContract.Feed.Columns.TITLE, title);
         }
 
-        @Override public void setAuthor(String author) { }
+        @Override
+        public void setLink(String link) {
+            vals.put(StreamContract.Feed.Columns.LINK, link);
+        }
+
+        @Override
+        public void setAuthor(String author) {
+            vals.put(StreamContract.Feed.Columns.AUTHOR, author);
+        }
 
         @Override
         public void setPubDate(String pubDate) {
@@ -108,13 +125,14 @@ public class RefreshService extends IntentService {
         }
 
         @Override
-        public void setDescription(String desc) {
-            vals.put(StreamContract.Feed.Columns.DESC, desc);
+        public void setIcon(String icon) {
+            try { vals.put(StreamContract.Feed.Columns.ICON, Long.valueOf(icon)); }
+            catch (NumberFormatException e) { }
         }
 
         @Override
-        public void setLink(String link) {
-            vals.put(StreamContract.Feed.Columns.LINK, link);
+        public void setDescription(String desc) {
+            vals.put(StreamContract.Feed.Columns.DESC, desc);
         }
     }
 
@@ -156,7 +174,7 @@ public class RefreshService extends IntentService {
             }
         }
 
-        // !!! Virgil seems to recommend this.  Really?
+        // !!! Virgil D. seems to recommend this.  Really?
         stopSelf();
     }
 

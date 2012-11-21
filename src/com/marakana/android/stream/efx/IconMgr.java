@@ -21,6 +21,7 @@ import java.util.WeakHashMap;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 
 
 /**
@@ -55,6 +56,8 @@ public class IconMgr {
         }
 
         if (load) { ctxt.getLoaderManager().initLoader(icon.hashCode(), null, icon); }
+
+        Log.d("ICON", "Got icon: " + icon + ": " + uri);
 
         return icon;
     }
