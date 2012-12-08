@@ -36,6 +36,8 @@ import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
+ * Using URIs as foreign keys is really convenient, but pretty expensive, space-wise.
+ *   Might have to fix that, at some point in the future.
  *
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
@@ -53,6 +55,7 @@ public class PostsDao {
     private static final String COL_TAGS = "tags";
     private static final String COL_SUMMARY = "summary";
     private static final String COL_CONTENT = "content";
+    private static final String COL_TYPE = "type";
     private static final String COL_THUMB = "thumb";
 
     private static final String CREATE_TABLE
@@ -64,7 +67,8 @@ public class PostsDao {
             + COL_DATE + " integer,"
             + COL_TAGS + " text,"
             + COL_SUMMARY + " text,"
-            + COL_THUMB + " text,"
+            + COL_THUMB + " text REFERENCES " + ThumbsDao.TABLE + "(" + ThumbsDao.COL_URI + "),"
+            + COL_TYPE + " text,"
             + COL_CONTENT + " text)";
 
     private static final String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE;
@@ -99,6 +103,9 @@ public class PostsDao {
         m.put(
             StreamContract.Posts.Columns.THUMB,
             new ColumnDef(COL_THUMB, ColumnDef.Type.STRING));
+        m.put(
+            StreamContract.Thumbs.Columns.TYPE,
+            new ColumnDef(COL_TYPE, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Posts.Columns.CONTENT,
             new ColumnDef(COL_CONTENT, ColumnDef.Type.STRING));

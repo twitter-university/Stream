@@ -15,6 +15,12 @@
 */
 package com.marakana.android.stream.db.dao;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -24,7 +30,10 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
+import com.marakana.android.stream.db.ColumnDef;
 import com.marakana.android.stream.db.DbHelper;
+import com.marakana.android.stream.db.StreamContract;
+import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -40,19 +49,54 @@ public class ThumbsDao {
     static final String COL_URI = "uri";
 
     private static final String COL_DATA = "_data";
+    private static final String COL_TYPE = "type";
     private static final String COL_LAST_USE = "last_use";
 
     private static final String CREATE_TABLE
         = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
-            + COL_DATA + " text,"
-            + COL_URI + " text,"
+            + COL_URI + " text UNIQUE,"
+            + COL_DATA + " text UNIQUE,"
+            + COL_TYPE + " text,"
             + COL_LAST_USE + " integer)";
 
     private static final String DROP_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String PK_CONSTRAINT = COL_ID + "=";
+
+    private static final Map<String, ColumnDef> COL_MAP;
+    static {
+        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
+        m.put(
+            StreamContract.Thumbs.Columns.ID,
+            new ColumnDef(COL_ID, ColumnDef.Type.LONG));
+        m.put(
+            StreamContract.Thumbs.Columns.LINK,
+            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
+        m.put(
+            StreamContract.Thumbs.Columns.TYPE,
+            new ColumnDef(COL_TYPE, ColumnDef.Type.STRING));
+        COL_MAP = Collections.unmodifiableMap(m);
+    }
+
+    private static final Map<String, String> COL_AS_MAP;
+    static {
+        Map<String, String> m = new HashMap<String, String>();
+        m.put(
+            StreamContract.Tags.Columns.ID,
+            COL_ID + " AS " + StreamContract.Tags.Columns.ID);
+        m.put(
+            StreamContract.Tags.Columns.LINK,
+            COL_URI + " AS " + StreamContract.Tags.Columns.LINK);
+        COL_AS_MAP = Collections.unmodifiableMap(m);
+    }
+
+    private static final SecureRandom random = new SecureRandom();
+
+    private static String makeFileName() {
+        return "thumb-" + new BigInteger(130, random).toString(32);
+    }
 
     /**
      * @param context
@@ -85,6 +129,10 @@ public class ThumbsDao {
      */
     public long insert(ContentValues vals) {
         if (BuildConfig.DEBUG) { Log.d(TAG, "insert thumb: " + vals); }
+
+        vals = StreamProvider.translateCols(COL_MAP, vals);
+        vals.put(COL_DATA, makeFileName());
+
         long pk = -1;
         try {
             pk = dbHelper.getDb().insertWithOnConflict(
@@ -107,6 +155,9 @@ public class ThumbsDao {
      */
     public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setStrict(true);
+
+        qb.setProjectionMap(COL_AS_MAP);
 
         qb.setTables(TABLE);
 

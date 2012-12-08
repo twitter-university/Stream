@@ -190,6 +190,10 @@ public class StreamProvider extends ContentProvider {
                 pk = tags.insert(vals);
                 break;
 
+            case THUMB_DIR:
+                pk = thumbs.insert(vals);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }

@@ -96,6 +96,8 @@ public final class StreamContract {
             /** article summary */
             public static final String SUMMARY = "summary";
             /** ref to article content */
+            public static final String TYPE = "type";
+            /** ref to article content */
             public static final String CONTENT = "content";
             /** ref to article thumbnail */
             public static final String THUMB = "thumb";
@@ -175,7 +177,7 @@ public final class StreamContract {
         private Thumbs() {}
 
         /** Thumbs table */
-        public static final String TABLE = "tags";
+        public static final String TABLE = "thumbs";
 
         /** Thumbs table URI */
         public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
@@ -195,8 +197,8 @@ public final class StreamContract {
             public static final String ID = BaseColumns._ID;
             /** tag uri */
             public static final String LINK = "link";
-            /** tag title */
-            public static final String LOCAL = "local_name";
+            /** tag type */
+            public static final String TYPE = "type";
             /** tag description */
             public static final String DESC = "description";
         }

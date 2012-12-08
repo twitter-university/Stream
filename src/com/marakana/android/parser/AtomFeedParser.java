@@ -31,11 +31,14 @@ public class AtomFeedParser {
     /** XML tag: link */ public static final String TAG_LINK = "link";
     /** XML attribute: rel */ public static final String ATTR_REL = "rel";
     /** XML attribute: href */ public static final String ATTR_HREF = "href";
+    /** XML attribute: type */ public static final String ATTR_TYPE = "type";
     /** XML attribute value: self */ public static final String LINK_TYPE_SELF = "self";
-    /** XML attribute value: thumbnail */ public static final String LINK_TYPE_THUMB = "thumbnail";
+    /** XML attribute value: icon */ public static final String LINK_TYPE_ICON = "icon";
 
     /** Post handler */
     public interface PostHandler {
+        /** post complete */
+        void finish();
         /** @param id */
         void setId(String id);
         /** @param title */
@@ -48,17 +51,21 @@ public class AtomFeedParser {
         void setPubDate(String date);
         /** @param summary */
         void setSummary(String summary);
-        /** @param link */
-        void setThumb(String link);
-        /** @param link */
-        void setContent(String link);
+        /**
+         * @param link
+         * @param type
+         */
+        void setThumb(String link, String type);
+        /**
+         * @param link
+         * @param type
+         */
+        void setContent(String link, String type);
         /**
          * @param label
          * @param term
          */
         void addCategory(String label, String term);
-        /** post complete */
-        void finish();
     }
 
     private enum LinkType { NONE, CONTENT, THUMB; }
@@ -253,26 +260,28 @@ public class AtomFeedParser {
         throws XmlPullParserException, IOException
     {
         String link = null;
-        LinkType type = LinkType.NONE;
+        String type = null;
+        LinkType use = LinkType.NONE;
 
         int nAttrs = parser.getAttributeCount();
         ATTR: for (int i = 0; i < nAttrs; i++) {
             String name = parser.getAttributeName(i);
             String val = parser.getAttributeValue(i);
             if (ATTR_HREF.equals(name)) { link = val; }
+            else if (ATTR_TYPE.equals(name)) { type = val; }
             else if (ATTR_REL.equals(name)) {
-                if (LINK_TYPE_SELF.equals(val)) { type = LinkType.CONTENT; }
-                else if (LINK_TYPE_THUMB.equals(val)) { type = LinkType.THUMB; }
+                if (LINK_TYPE_SELF.equals(val)) { use = LinkType.CONTENT; }
+                else if (LINK_TYPE_ICON.equals(val)) { use = LinkType.THUMB; }
                 else { break ATTR; }
             }
         }
 
-        switch (type) {
+        switch (use) {
             case CONTENT:
-                hdlr.setContent(link);
+                hdlr.setContent(link, type);
                 break;
             case THUMB:
-                hdlr.setThumb(link);
+                hdlr.setThumb(link, type);
                 break;
             case NONE:
                 break;

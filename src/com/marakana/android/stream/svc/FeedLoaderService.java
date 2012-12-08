@@ -88,7 +88,7 @@ public class FeedLoaderService extends IntentService {
 
         private final ContentValues authorVals = new ContentValues();
         private final ContentValues postVals = new ContentValues();
-        private final ContentValues tagVals = new ContentValues();
+        private final ContentValues tmpVals = new ContentValues();
         private final StringBuilder tags = new StringBuilder();
 
         public ContentValuesPostHandler() {}
@@ -142,21 +142,26 @@ public class FeedLoaderService extends IntentService {
         }
 
         @Override
-        public void setThumb(String thumb) {
+        public void setThumb(String thumb, String type) {
+            tmpVals.clear();
+            tmpVals.put(StreamContract.Thumbs.Columns.LINK, thumb);
+            tmpVals.put(StreamContract.Thumbs.Columns.TYPE, type);
+            writeThumb(tmpVals);
             postVals.put(StreamContract.Posts.Columns.THUMB, thumb);
         }
 
         @Override
-        public void setContent(String link) {
+        public void setContent(String link, String type) {
+            postVals.put(StreamContract.Posts.Columns.TYPE, type);
             postVals.put(StreamContract.Posts.Columns.CONTENT, link);
         }
 
         @Override
         public void addCategory(String label, String term) {
-            tagVals.clear();
-            tagVals.put(StreamContract.Tags.Columns.TITLE, label);
-            tagVals.put(StreamContract.Tags.Columns.DESC, term);
-            writeTag(tagVals);
+            tmpVals.clear();
+            tmpVals.put(StreamContract.Tags.Columns.TITLE, label);
+            tmpVals.put(StreamContract.Tags.Columns.DESC, term);
+            writeTag(tmpVals);
 
             if (0 < tags.length()) { tags.append(","); }
             tags.append(label);
@@ -205,16 +210,20 @@ public class FeedLoaderService extends IntentService {
         stopSelf();
     }
 
-    void writeTag(ContentValues category) {
-        getContentResolver().insert(StreamContract.Tags.URI, category);
+    void writeThumb(ContentValues vals) {
+        getContentResolver().insert(StreamContract.Thumbs.URI, vals);
     }
 
-    void writeAuthor(ContentValues author) {
-        getContentResolver().insert(StreamContract.Authors.URI, author);
+    void writeTag(ContentValues vals) {
+        getContentResolver().insert(StreamContract.Tags.URI, vals);
     }
 
-    void writePost(ContentValues post) {
-        if (null != getContentResolver().insert(StreamContract.Posts.URI, post)) { added++; }
+    void writeAuthor(ContentValues vals) {
+        getContentResolver().insert(StreamContract.Authors.URI, vals);
+    }
+
+    void writePost(ContentValues vals) {
+        if (null != getContentResolver().insert(StreamContract.Posts.URI, vals)) { added++; }
     }
 
     private URL getFeedUrl() throws MalformedURLException {
