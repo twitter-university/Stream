@@ -2,36 +2,104 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingRight="9dp"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:paddingRight="9dp" >
 
     <ImageView
-        android:id="@+id/image_tag"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:id="@+id/feed_thumb"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:contentDescription="@string/label_tag"
-        android:padding="5dp" />
+        android:paddingRight="4dp"
+        android:src="@drawable/icon_default" />
 
     <TextView
-        android:id="@+id/text_date"
+        android:id="@+id/feed_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="@string/label_date"
-        android:textColor="@android:color/secondary_text_light"
-        android:textSize="10sp"
-        android:textStyle="italic" />
+        android:layout_toRightOf="@id/feed_thumb"
+        android:text="@string/post_title"
+        android:textSize="18sp" />
 
     <TextView
-        android:id="@+id/text_title"
+        android:id="@+id/feed_summary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/text_date"
-        android:layout_toRightOf="@id/image_tag"
+        android:layout_below="@id/feed_title"
+        android:layout_toRightOf="@id/feed_thumb"
         android:paddingRight="9dp"
-        android:text="@string/label_title" />
+        android:text="@string/post_summary" />
+
+    <TextView
+        android:id="@+id/feed_label_author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/feed_summary"
+        android:layout_toRightOf="@id/feed_thumb"
+        android:paddingRight="3dp"
+        android:paddingTop="9dp"
+        android:text="@string/post_label_author"
+        android:textColor="@android:color/secondary_text_light"
+        android:textStyle="italic"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/feed_author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/feed_label_author"
+        android:layout_toRightOf="@id/feed_label_author"
+        android:paddingRight="3dp"
+        android:text="@string/post_author"
+        android:textColor="@android:color/secondary_text_light"
+        android:textStyle="italic"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/feed_label_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/feed_label_author"
+        android:layout_toRightOf="@id/feed_author"
+        android:paddingRight="3dp"
+        android:text="@string/post_label_date"
+        android:textColor="@android:color/secondary_text_light"
+        android:textStyle="italic"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/feed_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/feed_label_date"
+        android:layout_toRightOf="@id/feed_label_date"
+        android:text="@string/post_date"
+        android:textColor="@android:color/secondary_text_light"
+        android:textStyle="italic"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/feed_label_tags"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/feed_label_author"
+        android:layout_toRightOf="@id/feed_thumb"
+        android:paddingRight="3dp"
+        android:text="@string/post_label_tags"
+        android:textColor="@android:color/secondary_text_light"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/feed_tags"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/feed_label_tags"
+        android:layout_toRightOf="@id/feed_label_tags"
+        android:text="@string/post_tags"
+        android:textColor="@android:color/secondary_text_light"
+        android:textSize="10sp" />
 
 </RelativeLayout>

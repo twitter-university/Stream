@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -30,30 +29,37 @@ public class FeedFragment extends ListFragment {
     private static final int LOADER_ID = 47;
 
     static final String[] FROM = {
+        StreamContract.Posts.Columns.THUMB,
         StreamContract.Posts.Columns.TITLE,
+        StreamContract.Posts.Columns.SUMMARY,
+        StreamContract.Posts.Columns.AUTHOR,
         StreamContract.Posts.Columns.PUB_DATE,
-        StreamContract.Posts.Columns.THUMB
     };
 
     private static final int[] TO = {
-         R.id.text_title,
-        R.id.text_date,
-        R.id.image_tag
-   };
+        R.id.feed_thumb,
+        R.id.feed_title,
+        R.id.feed_summary,
+        R.id.feed_author,
+        R.id.feed_date,
+    };
 
     private final SimpleCursorAdapter.ViewBinder VIEW_BINDER
         = new SimpleCursorAdapter.ViewBinder() {
         @Override
         public boolean setViewValue(View view, Cursor cur, int idx) {
             switch (view.getId()) {
-                case R.id.image_tag:
-                    ((ImageView) view).setImageDrawable(
-                            iconMgr.getIcon(StreamContract.Tags.URI.buildUpon()
-                                    .appendPath(cur.getString(idx)).build()));
+                case R.id.feed_thumb:
+//                    ((ImageView) view).setImageDrawable(
+//                            iconMgr.getIcon(StreamContract.Tags.URI.buildUpon()
+//                                    .appendPath(cur.getString(idx)).build()));
                     break;
-                case R.id.text_date:
+                case R.id.feed_date:
                     long timestamp = cur.getLong(idx);
-                    ((TextView) view).setText(DateUtils.getRelativeTimeSpanString(timestamp));
+                    ((TextView) view).setText(DateUtils.formatDateTime(
+                            FeedFragment.this.getActivity(),
+                            timestamp,
+                            DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_YEAR));
                     break;
                 default:
                     return false;
