@@ -86,7 +86,7 @@ public class ThumbsDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
-        catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
+        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }
 

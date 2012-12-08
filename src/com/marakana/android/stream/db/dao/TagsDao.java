@@ -220,7 +220,7 @@ public class TagsDao {
             fName = c.getString(c.getColumnIndex(COL_TAGS_ICON));
         }
         catch (Exception e) {
-            Log.e(TAG, "WTF?", e);
+            Log.w(TAG, "WTF?", e);
         }
         finally {
             if (null != c) {
@@ -228,7 +228,7 @@ public class TagsDao {
             }
         }
 
-        Log.d(TAG, "Opening: " + fName);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "Opening: " + fName); }
         ParcelFileDescriptor fd = null;
         try {
             fd = ParcelFileDescriptor.open(
@@ -238,7 +238,6 @@ public class TagsDao {
         catch (Exception e) {
             throw new FileNotFoundException("Failed opening : " + fName);
         }
-        Log.d(TAG, "Opened file: " + fd);
 
         return fd;
     }

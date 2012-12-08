@@ -124,7 +124,7 @@ public class AuthorsDao {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
         try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
-        catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
+        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }
 

@@ -123,7 +123,6 @@ public class FeedLoaderService extends IntentService {
             long t = 0;
             try { t = FORMATTER.parse(date).getTime(); }
             catch (ParseException e) { }
-            Log.d(TAG, "DATE: " + date + " @" + t);
             postVals.put(StreamContract.Posts.Columns.PUB_DATE, Long.valueOf(t));
         }
 
@@ -192,9 +191,7 @@ public class FeedLoaderService extends IntentService {
 
     void writePost(ContentValues post, ContentValues author) {
         ContentResolver resolver = getContentResolver();
-        Log.d(TAG, "Author: " + author);
         //resolver.insert(StreamContract.Authors.URI, author);
-        Log.d(TAG, "Post: " + post);
         if (null != resolver.insert(StreamContract.Posts.URI, post)) { added++; }
     }
 
