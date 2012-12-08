@@ -78,6 +78,9 @@ public class PostsDao {
             StreamContract.Posts.Columns.ID,
             new ColumnDef(COL_ID, ColumnDef.Type.LONG));
         m.put(
+            StreamContract.Posts.Columns.LINK,
+            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
+        m.put(
             StreamContract.Posts.Columns.TITLE,
             new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
         m.put(

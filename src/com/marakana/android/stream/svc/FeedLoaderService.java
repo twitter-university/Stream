@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -81,8 +82,10 @@ public class FeedLoaderService extends IntentService {
     }
 
     private class ContentValuesPostHandler implements AtomFeedParser.PostHandler {
+        // Atom format: "yyyy-MM-dd'T'HH:mm:ssZ"
+        // RSS date format: "EEE, dd MMM yyyy-MM-ddHH:mm:ss Z"
         private final SimpleDateFormat FORMATTER
-                = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+                = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
 
         private final ContentValues postVals = new ContentValues();
         private final ContentValues authorVals = new ContentValues();
@@ -120,6 +123,7 @@ public class FeedLoaderService extends IntentService {
             long t = 0;
             try { t = FORMATTER.parse(date).getTime(); }
             catch (ParseException e) { }
+            Log.d(TAG, "DATE: " + date + " @" + t);
             postVals.put(StreamContract.Posts.Columns.PUB_DATE, Long.valueOf(t));
         }
 
@@ -187,11 +191,11 @@ public class FeedLoaderService extends IntentService {
     }
 
     void writePost(ContentValues post, ContentValues author) {
-        //ContentResolver resolver = getContentResolver();
-        //resolver.insert(StreamContract.Authors.URI, author);
-        //if (null != resolver.insert(StreamContract.Posts.URI, post)) { added++; }
-        Log.d(TAG, "Post: " + post);
+        ContentResolver resolver = getContentResolver();
         Log.d(TAG, "Author: " + author);
+        //resolver.insert(StreamContract.Authors.URI, author);
+        Log.d(TAG, "Post: " + post);
+        if (null != resolver.insert(StreamContract.Posts.URI, post)) { added++; }
     }
 
     private URL getFeedUrl() throws MalformedURLException {

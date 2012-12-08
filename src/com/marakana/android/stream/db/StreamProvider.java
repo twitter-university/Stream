@@ -197,7 +197,7 @@ public class StreamProvider extends ContentProvider {
     public ParcelFileDescriptor openFile(Uri uri, String mode)
         throws FileNotFoundException
     {
-        ParcelFileDescriptor fd;
+        ParcelFileDescriptor fd = null;
 
         switch (uriMatcher.match(uri)) {
             case TAG_ITEM:
@@ -209,7 +209,7 @@ public class StreamProvider extends ContentProvider {
 
             /// maybe just ignore it?
             default:
-                throw new UnsupportedOperationException("Unrecognized URI: " + uri);
+                //throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
 
         if (BuildConfig.DEBUG) { Log.d(TAG, "file: " + fd); }
