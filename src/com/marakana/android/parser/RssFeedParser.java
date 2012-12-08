@@ -16,7 +16,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * XmlPullFeedParser
  */
-public class FeedParser {
+public class RssFeedParser {
     /** XML tag: rss */ public static final String TAG_RSS = "rss";
     /** XML tag: channel */ public static final String TAG_CHANNEL = "channel";
     /** XML tag: item */ public static final String TAG_ITEM = "item";
@@ -46,11 +46,11 @@ public class FeedParser {
     private static abstract class Element {
         protected final Map<String, Element> parseMap;
         public Element(Map<String, Element> parseMap) { this.parseMap = parseMap; }
-        public abstract void start(FeedParser root, XmlPullParser parser, PostHandler hdlr)
+        public abstract void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr)
             throws XmlPullParserException, IOException;
-        public abstract void text(FeedParser root, String text, PostHandler hdlr)
+        public abstract void text(RssFeedParser root, String text, PostHandler hdlr)
             throws XmlPullParserException, IOException;
-        public abstract void end(FeedParser root, PostHandler hdlr)
+        public abstract void end(RssFeedParser root, PostHandler hdlr)
             throws XmlPullParserException, IOException;
     }
 
@@ -61,30 +61,30 @@ public class FeedParser {
         m.put(
             TAG_TITLE,
             new Element(null) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr) { }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { hdlr.setTitle(text); }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { hdlr.setTitle(text); }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
         m.put(
             TAG_PUB_DATE,
             new Element(null) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr) { }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { hdlr.setPubDate(text); }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { hdlr.setPubDate(text); }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
         m.put(
             TAG_DESCRIPTION,
             new Element(null) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr) { }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { hdlr.setDescription(text); }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { hdlr.setDescription(text); }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
         m.put(
             TAG_LINK,
             new Element(null) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr) { }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { hdlr.setLink(text); }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { hdlr.setLink(text); }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
         itemParseTable = Collections.unmodifiableMap(m);
     }
@@ -95,13 +95,13 @@ public class FeedParser {
         m.put(
             TAG_ITEM,
             new Element(itemParseTable) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr)
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr)
                     throws XmlPullParserException, IOException
                 {
                     root.parseElement(parser, hdlr, parseMap);
                 }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { }
-                @Override public void end(FeedParser root, PostHandler hdlr) { hdlr.finish(); }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { hdlr.finish(); }
             });
         channelParseTable = Collections.unmodifiableMap(m);
     }
@@ -112,13 +112,13 @@ public class FeedParser {
         m.put(
             TAG_CHANNEL,
             new Element(channelParseTable) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr)
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr)
                     throws XmlPullParserException, IOException
                 {
                     root.parseElement(parser, hdlr, parseMap);
                 }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
 
         rssParseTable = Collections.unmodifiableMap(m);
@@ -130,13 +130,13 @@ public class FeedParser {
         m.put(
             TAG_RSS,
             new Element(rssParseTable) {
-                @Override public void start(FeedParser root, XmlPullParser parser, PostHandler hdlr)
+                @Override public void start(RssFeedParser root, XmlPullParser parser, PostHandler hdlr)
                     throws XmlPullParserException, IOException
                 {
                     root.parseElement(parser, hdlr, parseMap);
                 }
-                @Override public void text(FeedParser root, String text, PostHandler hdlr) { }
-                @Override public void end(FeedParser root, PostHandler hdlr) { }
+                @Override public void text(RssFeedParser root, String text, PostHandler hdlr) { }
+                @Override public void end(RssFeedParser root, PostHandler hdlr) { }
             });
         docParseTable = Collections.unmodifiableMap(m);
     }

@@ -30,9 +30,9 @@ public class FeedFragment extends ListFragment {
     private static final int LOADER_ID = 47;
 
     static final String[] FROM = {
-        StreamContract.Feed.Columns.TITLE,
-        StreamContract.Feed.Columns.PUB_DATE,
-        StreamContract.Feed.Columns.ICON
+        StreamContract.Posts.Columns.TITLE,
+        StreamContract.Posts.Columns.PUB_DATE,
+        StreamContract.Posts.Columns.THUMB
     };
 
     private static final int[] TO = {
@@ -67,7 +67,7 @@ public class FeedFragment extends ListFragment {
         = new LoaderManager.LoaderCallbacks<Cursor>() {
         private final String[] PROJ = new String[FROM.length + 1];
         {
-            PROJ[0] = StreamContract.Feed.Columns.ID;
+            PROJ[0] = StreamContract.Posts.Columns.ID;
             System.arraycopy(FROM, 0, PROJ, 1, FROM.length);
         }
 
@@ -75,7 +75,7 @@ public class FeedFragment extends ListFragment {
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             return new CursorLoader(
                 getActivity(),
-                StreamContract.Feed.URI,
+                StreamContract.Posts.URI,
                 PROJ,
                 null,
                 null,

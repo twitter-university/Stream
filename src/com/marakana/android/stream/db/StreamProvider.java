@@ -13,6 +13,10 @@ import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
+import com.marakana.android.stream.db.dao.AuthorsDao;
+import com.marakana.android.stream.db.dao.PostsDao;
+import com.marakana.android.stream.db.dao.TagsDao;
+import com.marakana.android.stream.db.dao.ThumbsDao;
 
 
 /**
@@ -29,11 +33,11 @@ public class StreamProvider extends ContentProvider {
     static {
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE,
+            StreamContract.Posts.TABLE,
             FEED_DIR);
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
-            StreamContract.Feed.TABLE + "/#",
+            StreamContract.Posts.TABLE + "/#",
             FEED_ITEM);
         uriMatcher.addURI(
             StreamContract.AUTHORITY,
@@ -65,8 +69,10 @@ public class StreamProvider extends ContentProvider {
 
 
     private DbHelper dbHelper;
-    private FeedDao feed;
+    private PostsDao posts;
     private TagsDao tags;
+    private AuthorsDao authors;
+    private ThumbsDao thumbs;
 
     /**
      * @see android.content.ContentProvider#onCreate()
@@ -75,7 +81,9 @@ public class StreamProvider extends ContentProvider {
     public boolean onCreate() {
         dbHelper = new DbHelper(this.getContext());
         if (null == dbHelper) { return false; }
-        feed = new FeedDao(this, dbHelper);
+        posts = new PostsDao(dbHelper);
+        authors = new AuthorsDao(dbHelper);
+        thumbs = new ThumbsDao(dbHelper);
         tags = new TagsDao(this, dbHelper);
         return true;
     }
@@ -87,9 +95,9 @@ public class StreamProvider extends ContentProvider {
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
             case FEED_ITEM:
-                return StreamContract.Feed.CONTENT_TYPE_ITEM;
+                return StreamContract.Posts.CONTENT_TYPE_ITEM;
             case FEED_DIR:
-                return StreamContract.Feed.CONTENT_TYPE_DIR;
+                return StreamContract.Posts.CONTENT_TYPE_DIR;
             case TAG_ITEM:
                 return StreamContract.Tags.CONTENT_TYPE_ITEM;
             case TAG_DIR:
@@ -127,7 +135,7 @@ public class StreamProvider extends ContentProvider {
         long pk;
         switch (uriMatcher.match(uri)) {
             case FEED_DIR:
-                pk = feed.insert(vals);
+                pk = posts.insert(vals);
                 break;
 
             default:
@@ -159,7 +167,7 @@ public class StreamProvider extends ContentProvider {
             case FEED_ITEM:
                 pk = ContentUris.parseId(uri);
             case FEED_DIR:
-                cur = feed.query(proj, sel, selArgs, ord, pk);
+                cur = posts.query(proj, sel, selArgs, ord, pk);
                 break;
 
             case TAG_ITEM:

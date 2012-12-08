@@ -2,22 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:background="@drawable/menu_bg" >
 
     <ListView
         android:id="@+id/menu_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/pearl" />
-
-    <!--
-    <pl.polidea.treeview.TreeViewList
-        android:id="@+id/tree_menu"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:scrollbars="vertical"
-        android:smoothScrollbar="true"
-        treeView:indicator_gravity="right|center_vertical" />
-    -->
+        android:paddingRight="7dp"/>
 
 </FrameLayout>

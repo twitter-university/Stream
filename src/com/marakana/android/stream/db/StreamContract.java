@@ -20,59 +20,31 @@ public final class StreamContract {
         .authority(AUTHORITY)
         .build();
 
-    /**
-     * Tags
-     */
-    public static final class Tags {
-        private Tags() {}
+    /** The posts table */
+    public static final class Posts {
+        private Posts() {}
 
-        /** Feed table */
-        public static final String TABLE = "tags";
+        /** Posts table */
+        public static final String TABLE = "posts";
 
-        /** Feed table URI */
+        /** Posts table URI */
         public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
 
-        /** Feed table DIR type */
-        public static final String CONTENT_TYPE_DIR = "vnd.android.cursor.dir/vnd.marakana.tag";
-        /** Feed table ITME type */
-        public static final String CONTENT_TYPE_ITEM = "vnd.android.cursor.item/vnd.marakana.tag";
+        /** Posts table DIR type */
+        public static final String CONTENT_TYPE_DIR
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + " + /vnd.marakana.stream.post";
+        /** Posts table ITEM type */
+        public static final String CONTENT_TYPE_ITEM
+            = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.marakana.stream.post";
 
-        /** Standard RSS column names. */
+        /** Posts table columns. */
         public static final class Columns {
             private Columns() {}
 
             /** article pk */
             public static final String ID = BaseColumns._ID;
-            /** article title */
-            public static final String TITLE = "title";
-            /** article description */
-            public static final String DESC = "description";
-            /** article link */
+            /** article uri */
             public static final String LINK = "link";
-        }
-    }
-
-    /** The feed table */
-    public static final class Feed {
-        private Feed() {}
-
-        /** Feed table */
-        public static final String TABLE = "feed";
-
-        /** Feed table URI */
-        public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
-
-        /** Feed table DIR type */
-        public static final String CONTENT_TYPE_DIR = "vnd.android.cursor.dir/vnd.marakana.post";
-        /** Feed table ITME type */
-        public static final String CONTENT_TYPE_ITEM = "vnd.android.cursor.item/vnd.marakana.post";
-
-        /** Standard RSS column names. */
-        public static final class Columns {
-            private Columns() {}
-
-            /** article pk */
-            public static final String ID = BaseColumns._ID;
             /** article title */
             public static final String TITLE = "title";
             /** article author */
@@ -80,14 +52,77 @@ public final class StreamContract {
             /** article publication data */
             public static final String PUB_DATE = "pub_date";
             /** article description */
-            public static final String DESC = "description";
-            /** article link */
-            public static final String LINK = "link";
-            /** temporary: idx for article icon */
-            public static final String ICON = "icon";
+            public static final String SUMMARY = "summary";
+            /** ref to article content */
+            public static final String CONTENT = "content";
+            /** ref to article thumbnail */
+            public static final String THUMB = "thumb";
 
             /** Special column */
             public static final String MAX_PUB_DATE = "max_pub_date";
+        }
+    }
+
+    /** The authors table */
+    public static final class Authors {
+        private Authors() {}
+
+        /** Authors table */
+        public static final String TABLE = "authors";
+
+        /** Authors table URI */
+        public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
+
+        /** Authors table DIR type */
+        public static final String CONTENT_TYPE_DIR
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + " + /vnd.marakana.stream.author";
+        /** Authors table ITME type */
+        public static final String CONTENT_TYPE_ITEM
+            = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.marakana.stream.author";
+
+        /** Authors table columns. */
+        public static final class Columns {
+            private Columns() {}
+            /** author pk */
+            public static final String ID = BaseColumns._ID;
+            /** author uri */
+            public static final String LINK = "link";
+            /** author name */
+            public static final String NAME = "name";
+        }
+    }
+
+    /**
+     * Tags
+     */
+    public static final class Tags {
+        private Tags() {}
+
+        /** Tags table */
+        public static final String TABLE = "tags";
+
+        /** Tags table URI */
+        public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
+
+        /** Tags table DIR type */
+        public static final String CONTENT_TYPE_DIR
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.marakana.stream.tag";
+        /** Feed table ITME type */
+        public static final String CONTENT_TYPE_ITEM
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.marakana.stream.tag";
+
+        /** Standard RSS column names. */
+        public static final class Columns {
+            private Columns() {}
+
+            /** tag pk */
+            public static final String ID = BaseColumns._ID;
+            /** tag uri */
+            public static final String LINK = "link";
+            /** tag title */
+            public static final String TITLE = "title";
+            /** tag description */
+            public static final String DESC = "description";
         }
     }
 }

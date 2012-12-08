@@ -102,6 +102,10 @@ public class LoadingDrawable
         }
     }
 
+    private static int tag;
+    private static synchronized int getTag() { return tag++; }
+
+    private final int loaderTag;
     private final Context ctxt;
     private final Uri uri;
     private BitmapDrawable icon;
@@ -111,9 +115,15 @@ public class LoadingDrawable
      * @param uri
      */
     public LoadingDrawable(Context ctxt, Uri uri) {
+        this.loaderTag = getTag();
         this.ctxt = ctxt;
         this.uri = uri;
     }
+
+    /**
+     * @return this Drawable's loader tag
+     */
+    public int getLoaderTag() { return loaderTag; }
 
     /**
      * @see android.app.LoaderManager.LoaderCallbacks#onCreateLoader(int, android.os.Bundle)

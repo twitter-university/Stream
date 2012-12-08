@@ -38,7 +38,7 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
     private static final String TAG = "BARMGR";
 
     private static final int MENU_DURATION = 300;
-    private static final int MENU_OVERHANG = 128;
+    private static final float MENU_OVERHANG = 0.70f;
 
     final static class MenuElement {
         private final String label;

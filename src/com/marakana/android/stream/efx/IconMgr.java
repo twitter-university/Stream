@@ -34,7 +34,6 @@ import com.marakana.android.stream.BuildConfig;
 public class IconMgr {
     private static final String TAG = "ICONMGR";
 
-
     private final Map<Uri, LoadingDrawable> cache = new WeakHashMap<Uri, LoadingDrawable>();
 
     private final Activity ctxt;
@@ -60,7 +59,7 @@ public class IconMgr {
             }
         }
 
-        if (load) { ctxt.getLoaderManager().initLoader(icon.hashCode(), null, icon); }
+        if (load) { ctxt.getLoaderManager().initLoader(icon.getLoaderTag(), null, icon); }
 
         if (BuildConfig.DEBUG) { Log.d(TAG, "Got icon: " + icon + ": " + uri); }
 

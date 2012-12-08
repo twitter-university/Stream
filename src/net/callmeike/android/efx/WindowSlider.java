@@ -37,7 +37,7 @@ public abstract class WindowSlider {
     final Activity activity;
 
     private final int duration;
-    private final int overhang;
+    private final float overhang;
 
     private final Rect viewRect = new Rect();
     private final Point bounds = new Point();
@@ -57,7 +57,7 @@ public abstract class WindowSlider {
         Activity activity,
         int viewLayoutId,
         int duration,
-        int overhang)
+        float overhang)
     {
         this.activity = activity;
         this.duration = duration;
@@ -151,7 +151,10 @@ public abstract class WindowSlider {
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT,
                 Gravity.LEFT);
-        params.setMargins(0, bounds.x, overhang, 0);
+
+        int oh = Math.round((viewRect.right - viewRect.left) * overhang);
+
+        params.setMargins(0, bounds.x, oh, 0);
         menuView.setLayoutParams(params);
 
         decorView.addView(menuView);
@@ -177,7 +180,8 @@ public abstract class WindowSlider {
     private void setBounds() {
         activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(viewRect);
         int x = activity.getActionBar().getHeight(); //
-        bounds.set(viewRect.top, viewRect.right - overhang);
+        int oh = Math.round((viewRect.right - viewRect.left) * overhang);
+        bounds.set(viewRect.top, viewRect.right - oh);
     }
 
     private void animate(View v, int delta, AnimationListener animationListener) {

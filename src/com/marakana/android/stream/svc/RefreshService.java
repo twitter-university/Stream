@@ -20,8 +20,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.marakana.android.parser.FeedParser;
-import com.marakana.android.parser.FeedParser.PostHandler;
+import com.marakana.android.parser.AtomFeedParser;
 import com.marakana.android.stream.BuildConfig;
 import com.marakana.android.stream.db.StreamContract;
 
@@ -38,8 +37,8 @@ public class RefreshService extends IntentService {
     public static final String FEED_TIME_CONSTRAINT = "publishedSince.millis";
     /** Accept: header */
     public static final String HEAD_ACCEPT = "Accept";
-    /** RSS MIME type */
-    public static final String MIME_RSS = "application/rss+xml";
+    /** Feed MIME type */
+    public static final String MIME_TYPE = "application/atom+xml";  //"application/rss+xml";
 
     /** Poll interval: !!! should be a preference */
     public static final long POLL_INTERVAL = 5 * 60 * 1000;
@@ -81,58 +80,67 @@ public class RefreshService extends IntentService {
         }
     }
 
-    private class ContentValuesPostHandler implements PostHandler {
+    private class ContentValuesPostHandler implements AtomFeedParser.PostHandler {
         private final SimpleDateFormat FORMATTER
                 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 
-        private final ContentValues vals = new ContentValues();
+        private final ContentValues postVals = new ContentValues();
+        private final ContentValues authorVals = new ContentValues();
 
         public ContentValuesPostHandler() {}
 
         @Override
         public void finish() {
-            // !!! Major hack, just to get us some pretty icons, for now
-            if (!vals.containsKey(StreamContract.Feed.Columns.ICON)) {
-                vals.put(
-                        StreamContract.Feed.Columns.ICON,
-                        Long.valueOf((long) (Math.floor(Math.random() * 18) + 1)));
-            }
-            writePost(vals);
-            vals.clear();
+            writePost(postVals, authorVals);
+            postVals.clear();
+        }
+
+        @Override
+        public void setId(String uri) {
+            postVals.put(StreamContract.Posts.Columns.LINK, uri);
         }
 
         @Override
         public void setTitle(String title) {
-            vals.put(StreamContract.Feed.Columns.TITLE, title);
+            postVals.put(StreamContract.Posts.Columns.TITLE, title);
         }
 
         @Override
-        public void setLink(String link) {
-            vals.put(StreamContract.Feed.Columns.LINK, link);
+        public void setAuthorName(String name) {
+            authorVals.put(StreamContract.Authors.Columns.NAME, name);
         }
 
         @Override
-        public void setAuthor(String author) {
-            vals.put(StreamContract.Feed.Columns.AUTHOR, author);
+        public void setAuthorUri(String uri) {
+            authorVals.put(StreamContract.Authors.Columns.LINK, uri);
         }
 
         @Override
-        public void setPubDate(String pubDate) {
+        public void setPubDate(String date) {
             long t = 0;
-            try { t = FORMATTER.parse(pubDate).getTime(); }
+            try { t = FORMATTER.parse(date).getTime(); }
             catch (ParseException e) { }
-            vals.put(StreamContract.Feed.Columns.PUB_DATE, Long.valueOf(t));
+            postVals.put(StreamContract.Posts.Columns.PUB_DATE, Long.valueOf(t));
         }
 
         @Override
-        public void setIcon(String icon) {
-            try { vals.put(StreamContract.Feed.Columns.ICON, Long.valueOf(icon)); }
-            catch (NumberFormatException e) { }
+        public void setSummary(String summary) {
+            postVals.put(StreamContract.Posts.Columns.SUMMARY, summary);
         }
 
         @Override
-        public void setDescription(String desc) {
-            vals.put(StreamContract.Feed.Columns.DESC, desc);
+        public void setThumb(String thumb) {
+            postVals.put(StreamContract.Posts.Columns.THUMB, thumb);
+        }
+
+        @Override
+        public void setContent(String link) {
+            postVals.put(StreamContract.Posts.Columns.CONTENT, link);
+        }
+
+        @Override
+        public void addCategory(String label, String term) {
+            // Ignore it for now...
         }
     }
 
@@ -159,7 +167,7 @@ public class RefreshService extends IntentService {
 
             url = getFeedUrl();
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
-            c.addRequestProperty(HEAD_ACCEPT, MIME_RSS);
+            c.addRequestProperty(HEAD_ACCEPT, MIME_TYPE);
 
             parseFeed(c.getInputStream());
         }
@@ -178,8 +186,12 @@ public class RefreshService extends IntentService {
         stopSelf();
     }
 
-    void writePost(ContentValues values) {
-        if (null != getContentResolver().insert(StreamContract.Feed.URI, values)) { added++; }
+    void writePost(ContentValues post, ContentValues author) {
+        //ContentResolver resolver = getContentResolver();
+        //resolver.insert(StreamContract.Authors.URI, author);
+        //if (null != resolver.insert(StreamContract.Posts.URI, post)) { added++; }
+        Log.d(TAG, "Post: " + post);
+        Log.d(TAG, "Author: " + author);
     }
 
     private URL getFeedUrl() throws MalformedURLException {
@@ -191,15 +203,15 @@ public class RefreshService extends IntentService {
     }
 
     private void parseFeed(InputStream feed) {
-        FeedParser parser = new FeedParser();
+        AtomFeedParser parser = new AtomFeedParser();
         try { parser.parse(feed, new ContentValuesPostHandler()); }
         catch (Exception e) { Log.w(TAG, "Parse failed", e); }
     }
 
     private long getLatestPostTime() {
         Cursor c = getContentResolver().query(
-            StreamContract.Feed.URI,
-            new String[] { StreamContract.Feed.Columns.MAX_PUB_DATE },
+            StreamContract.Posts.URI,
+            new String[] { StreamContract.Posts.Columns.MAX_PUB_DATE },
             null,
             null,
             null);

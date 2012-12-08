@@ -6,6 +6,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
+import com.marakana.android.stream.db.dao.AuthorsDao;
+import com.marakana.android.stream.db.dao.PostsDao;
+import com.marakana.android.stream.db.dao.TagsDao;
+import com.marakana.android.stream.db.dao.ThumbsDao;
 
 
 /**
@@ -15,7 +19,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String TAG = "DB";
 
     private static final String DB_NAME = "stream.db";
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 6;
 
 
     private final Context context;
@@ -33,7 +37,9 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        FeedDao.initDb(context, db);
+        PostsDao.initDb(context, db);
+        AuthorsDao.initDb(context, db);
+        ThumbsDao.initDb(context, db);
         TagsDao.initDb(context, db);
     }
 
@@ -43,8 +49,11 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (BuildConfig.DEBUG) { Log.d(TAG, "db upgrade"); }
-        FeedDao.dropTable(context, db);
-        TagsDao.dropTable(context, db);
+        PostsDao.dropTable(context, db);
+        AuthorsDao.dropTable(context, db);
+        PostsDao.dropTable(context, db);
+        ThumbsDao.dropTable(context, db);
+
         onCreate(db);
     }
 

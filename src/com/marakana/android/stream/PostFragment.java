@@ -65,8 +65,8 @@ public class PostFragment extends WebViewFragment {
                 ? null
                 : new CursorLoader(
                     getActivity(),
-                    ContentUris.withAppendedId(StreamContract.Feed.URI, args.getLong(KEY_ID)),
-                    new String[] { StreamContract.Feed.Columns.DESC },
+                    ContentUris.withAppendedId(StreamContract.Posts.URI, args.getLong(KEY_ID)),
+                    new String[] { StreamContract.Posts.Columns.SUMMARY },
                     null,
                     null,
                     null);
