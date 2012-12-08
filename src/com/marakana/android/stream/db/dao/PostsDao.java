@@ -43,7 +43,7 @@ import com.marakana.android.stream.db.StreamProvider;
 public class PostsDao {
     private static final String TAG = "POSTS-DAO";
 
-    static final String TABLE_POSTS = "posts";
+    static final String TABLE = "posts";
     static final String COL_ID = "id";
 
     private static final String COL_URI = "uri";
@@ -55,7 +55,7 @@ public class PostsDao {
     private static final String COL_THUMB = "thumb";
 
     private static final String CREATE_TABLE
-        = "CREATE TABLE " + TABLE_POSTS + " ("
+        = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
             + COL_URI + " text,"
             + COL_TITLE + " text,"
@@ -66,7 +66,7 @@ public class PostsDao {
             + COL_CONTENT + " text)";
 
     private static final String DROP_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE_POSTS;
+        = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
     private static final String PK_CONSTRAINT = COL_ID + "=";
@@ -133,6 +133,7 @@ public class PostsDao {
      * @param db
      */
     public static void dropTable(Context context, SQLiteDatabase db) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "drop posts db: " + DROP_TABLE); }
         db.execSQL(DROP_TABLE);
     }
 
@@ -160,7 +161,7 @@ public class PostsDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE_POSTS, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
         catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
         return pk;
     }
@@ -179,7 +180,7 @@ public class PostsDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(TABLE_POSTS);
+        qb.setTables(TABLE);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 

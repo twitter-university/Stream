@@ -6,7 +6,7 @@ import android.os.Bundle;
 /**
  * MainActivity
  */
-public class MainActivity extends BaseActivity {
+public class FeedActivity extends BaseActivity {
 
     /**
      * @see android.app.Activity#onCreate(android.os.Bundle)

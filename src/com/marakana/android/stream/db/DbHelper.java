@@ -19,7 +19,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String TAG = "DB";
 
     private static final String DB_NAME = "stream.db";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 20; //6
 
 
     private final Context context;
@@ -37,9 +37,9 @@ public class DbHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
-        PostsDao.initDb(context, db);
         AuthorsDao.initDb(context, db);
         ThumbsDao.initDb(context, db);
+        PostsDao.initDb(context, db);
         TagsDao.initDb(context, db);
     }
 
@@ -49,10 +49,10 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (BuildConfig.DEBUG) { Log.d(TAG, "db upgrade"); }
-        PostsDao.dropTable(context, db);
-        AuthorsDao.dropTable(context, db);
+        TagsDao.dropTable(context, db);
         PostsDao.dropTable(context, db);
         ThumbsDao.dropTable(context, db);
+        AuthorsDao.dropTable(context, db);
 
         onCreate(db);
     }

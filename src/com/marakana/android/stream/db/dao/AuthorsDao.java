@@ -43,20 +43,20 @@ import com.marakana.android.stream.db.StreamProvider;
 public class AuthorsDao {
     private static final String TAG = "AUTHORS-DAO";
 
-    static final String TABLE_AUTHORS = "authors";
+    static final String TABLE = "authors";
     static final String COL_ID = "id";
 
     private static final String COL_NAME = "name";
     private static final String COL_LINK = "link";
 
     private static final String CREATE_TABLE
-        = "CREATE TABLE " + TABLE_AUTHORS + " ("
+        = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
             + COL_NAME + " text,"
             + COL_LINK + " text)";
 
     private static final String DROP_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE_AUTHORS;
+        = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
     private static final String PK_CONSTRAINT = COL_ID + "=";
@@ -96,6 +96,7 @@ public class AuthorsDao {
      * @param db
      */
     public static void dropTable(Context context, SQLiteDatabase db) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "drop authors db: " + DROP_TABLE); }
         db.execSQL(DROP_TABLE);
     }
 
@@ -104,7 +105,7 @@ public class AuthorsDao {
      * @param db
      */
     public static void initDb(Context context, SQLiteDatabase db) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "create feed db: " + CREATE_TABLE); }
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create authors db: " + CREATE_TABLE); }
         db.execSQL(CREATE_TABLE);
     }
 
@@ -122,7 +123,7 @@ public class AuthorsDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE_AUTHORS, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
         catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
         return pk;
     }
@@ -141,7 +142,7 @@ public class AuthorsDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(TABLE_AUTHORS);
+        qb.setTables(TABLE);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 

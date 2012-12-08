@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import com.marakana.android.stream.db.StreamContract;
 import com.marakana.android.stream.efx.IconMgr;
-import com.marakana.android.stream.svc.RefreshService;
+import com.marakana.android.stream.svc.FeedLoaderService;
 
 
 /**
@@ -105,7 +105,7 @@ public class FeedFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        final MainActivity activity = (MainActivity) getActivity();
+        final FeedActivity activity = (FeedActivity) getActivity();
         iconMgr = new IconMgr(activity);
 
         setEmptyText(getString(R.string.no_feed));
@@ -126,7 +126,7 @@ public class FeedFragment extends ListFragment {
         getLoaderManager().initLoader(LOADER_ID, null, loader);
 
         // Start the RefreshService
-        RefreshService.pollOnce(activity);
+        FeedLoaderService.pollOnce(activity);
 
         if (BuildConfig.DEBUG) { Log.d(TAG, "created"); }
     }

@@ -47,7 +47,7 @@ import com.marakana.android.stream.db.StreamProvider;
 public class TagsDao {
     private static final String TAG = "TAGS-DAO";
 
-    private static final String TABLE_TAGS = "tags";
+    private static final String TABLE = "tags";
 
     private static final String COL_ID = "id";
     private static final String COL_TITLE = "title";
@@ -56,7 +56,7 @@ public class TagsDao {
     private static final String COL_TAGS_ICON = "_data";
 
     private static final String CREATE_TAGS_TABLE
-        = "CREATE TABLE " + TABLE_TAGS + " ("
+        = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
             + COL_TITLE + " text,"
             + COL_LINK + " text,"
@@ -69,13 +69,13 @@ public class TagsDao {
 
     private static final String CREATE_REL_TABLE
         = "CREATE TABLE " + TABLE_REL + " ("
-            + COL_POST + " integer REFERENCES " + PostsDao.TABLE_POSTS + "(" + PostsDao.COL_ID + "),"
-            + COL_TAG + " integer REFERENCES " + TABLE_TAGS + "(" + COL_ID + "),"
+            + COL_POST + " integer REFERENCES " + PostsDao.TABLE + "(" + PostsDao.COL_ID + "),"
+            + COL_TAG + " integer REFERENCES " + TABLE + "(" + COL_ID + "),"
             + COL_DESC + " text,"
             + COL_TAGS_ICON + " text)";
 
     private static final String DROP_TAGS_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE_TAGS;
+        = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String DROP_REL_TABLE
         = "DROP TABLE IF EXISTS " + TABLE_REL;
@@ -129,8 +129,10 @@ public class TagsDao {
      * @param db
      */
     public static void dropTable(Context context, SQLiteDatabase db) {
-        db.execSQL(DROP_TAGS_TABLE);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "drop rel db: " + DROP_REL_TABLE); }
         db.execSQL(DROP_REL_TABLE);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "drop tags db: " + DROP_TAGS_TABLE); }
+        db.execSQL(DROP_TAGS_TABLE);
     }
 
     /**
@@ -138,8 +140,9 @@ public class TagsDao {
      * @param db
      */
     public static void initDb(Context context, SQLiteDatabase db) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "create tags db"); }
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create tags db: " + CREATE_TAGS_TABLE); }
         db.execSQL(CREATE_TAGS_TABLE);
+        if (BuildConfig.DEBUG) { Log.d(TAG, "create rel db: " + CREATE_REL_TABLE); }
         db.execSQL(CREATE_REL_TABLE);
     }
 
@@ -162,7 +165,7 @@ public class TagsDao {
     public long insert(ContentValues vals) {
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE_TAGS, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
         catch (SQLException e) { Log.w(TAG, "Insert failed: ", e); }
         return pk;
     }
@@ -181,7 +184,7 @@ public class TagsDao {
 
         qb.setProjectionMap(COL_AS_MAP);
 
-        qb.setTables(TABLE_TAGS);
+        qb.setTables(TABLE);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 
@@ -203,7 +206,7 @@ public class TagsDao {
         Cursor c = null;
         try {
             c = dbHelper.getDb().query(
-                    TABLE_TAGS,
+                    TABLE,
                     new String[] { COL_TAGS_ICON },
                     PK_CONSTRAINT + pk,
                     null,

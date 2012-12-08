@@ -160,6 +160,7 @@ public class AtomFeedParser {
                     super.start(root, parser, hdlr);
                     root.parseElement(parser, hdlr, parseMap);
                 }
+                @Override public void end(AtomFeedParser root, PostHandler hdlr) { hdlr.finish(); }
             });
         feedParseTable = Collections.unmodifiableMap(m);
     }

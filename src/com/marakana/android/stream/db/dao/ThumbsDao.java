@@ -35,7 +35,7 @@ import com.marakana.android.stream.db.DbHelper;
 public class ThumbsDao {
     private static final String TAG = "THUMBS-DAO";
 
-    static final String TABLE_THUMBS = "thumbs";
+    static final String TABLE = "thumbs";
     static final String COL_ID = "id";
 
     private static final String COL_DATA = "_data";
@@ -43,14 +43,14 @@ public class ThumbsDao {
     private static final String COL_LAST_USE = "last_use";
 
     private static final String CREATE_TABLE
-        = "CREATE TABLE " + TABLE_THUMBS + " ("
+        = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
             + COL_DATA + " text,"
             + COL_LINK + " text,"
             + COL_LAST_USE + " integer)";
 
     private static final String DROP_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE_THUMBS;
+        = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String PK_CONSTRAINT = COL_ID + "=";
 
@@ -59,6 +59,7 @@ public class ThumbsDao {
      * @param db
      */
     public static void dropTable(Context context, SQLiteDatabase db) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "drop thumbs db: " + DROP_TABLE); }
         db.execSQL(DROP_TABLE);
     }
 
@@ -84,7 +85,7 @@ public class ThumbsDao {
      */
     public long insert(ContentValues vals) {
         long pk = -1;
-        try { pk = dbHelper.getDb().insert(TABLE_THUMBS, null, vals); }
+        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
         catch (SQLException e) { Log.e(TAG, "insert failed: ", e); }
         return pk;
     }
@@ -100,7 +101,7 @@ public class ThumbsDao {
     public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 
-        qb.setTables(TABLE_THUMBS);
+        qb.setTables(TABLE);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 

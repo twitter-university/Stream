@@ -17,7 +17,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import net.callmeike.android.efx.WindowSlider;
-import com.marakana.android.stream.svc.RefreshService;
+import com.marakana.android.stream.svc.FeedLoaderService;
 import com.marakana.android.stream.efx.FlingDetector;
 import com.marakana.android.stream.efx.FlingDetector.Direction;
 
@@ -58,7 +58,7 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
     static {
         List<MenuElement> l = new ArrayList<MenuElement>();
         l.add(new MenuElement("Home", null));
-        l.add(new MenuElement("Feed", MainActivity.class));
+        l.add(new MenuElement("Feed", FeedActivity.class));
         l.add(new MenuElement("Tags", null));
         l.add(new MenuElement("Authors", null));
         menuItems = Collections.unmodifiableList(l);
@@ -133,7 +133,7 @@ public class ActionBarMgr extends WindowSlider implements FlingDetector.FlingLis
                 toggleSlider(!getVisible());
                 break;
             case R.id.menu_refresh:
-                RefreshService.pollOnce(activity);
+                FeedLoaderService.pollOnce(activity);
                 break;
             // these should be direct actions...
             case R.id.menu_link:

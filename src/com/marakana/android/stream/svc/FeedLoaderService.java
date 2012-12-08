@@ -28,7 +28,7 @@ import com.marakana.android.stream.db.StreamContract;
 /**
  * RefreshService
  */
-public class RefreshService extends IntentService {
+public class FeedLoaderService extends IntentService {
     private static final String TAG = "REFRESH";
 
     /** Base URI for the Marakana stream */
@@ -56,7 +56,7 @@ public class RefreshService extends IntentService {
      * @param ctxt
      */
     public static void pollOnce(Context ctxt) {
-        ctxt.startService(new Intent(ctxt, RefreshService.class));
+        ctxt.startService(new Intent(ctxt, FeedLoaderService.class));
     }
 
     /**
@@ -68,15 +68,15 @@ public class RefreshService extends IntentService {
         AlarmManager am = (AlarmManager) ctxt.getSystemService(Context.ALARM_SERVICE);
         am.setRepeating(
                 AlarmManager.RTC,
-                System.currentTimeMillis() + RefreshService.POLL_INTERVAL,
-                RefreshService.POLL_INTERVAL,
+                System.currentTimeMillis() + FeedLoaderService.POLL_INTERVAL,
+                FeedLoaderService.POLL_INTERVAL,
                 PendingIntent.getService(
                         ctxt,
                         INTENT_TAG,
-                        new Intent(ctxt, RefreshService.class),
+                        new Intent(ctxt, FeedLoaderService.class),
                         PendingIntent.FLAG_UPDATE_CURRENT));
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "peroidic polling started @" + RefreshService.POLL_INTERVAL);
+            Log.d(TAG, "peroidic polling started @" + FeedLoaderService.POLL_INTERVAL);
         }
     }
 
@@ -150,7 +150,7 @@ public class RefreshService extends IntentService {
     /**
      *
      */
-    public RefreshService() { super(TAG); }
+    public FeedLoaderService() { super(TAG); }
 
     /**
      * @see android.app.IntentService#onHandleIntent(android.content.Intent)
