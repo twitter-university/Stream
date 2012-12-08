@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -87,14 +86,24 @@ public class FeedLoaderService extends IntentService {
         private final SimpleDateFormat FORMATTER
                 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US);
 
-        private final ContentValues postVals = new ContentValues();
         private final ContentValues authorVals = new ContentValues();
+        private final ContentValues postVals = new ContentValues();
+        private final ContentValues tagVals = new ContentValues();
+        private final StringBuilder tags = new StringBuilder();
 
         public ContentValuesPostHandler() {}
 
         @Override
         public void finish() {
-            writePost(postVals, authorVals);
+            if (0 < tags.length()) {
+                postVals.put(StreamContract.Posts.Columns.TAGS, tags.toString());
+                tags.setLength(0);
+            }
+
+            writeAuthor(authorVals);
+            authorVals.clear();
+
+            writePost(postVals);
             postVals.clear();
         }
 
@@ -116,6 +125,7 @@ public class FeedLoaderService extends IntentService {
         @Override
         public void setAuthorUri(String uri) {
             authorVals.put(StreamContract.Authors.Columns.LINK, uri);
+            postVals.put(StreamContract.Posts.Columns.AUTHOR, uri);
         }
 
         @Override
@@ -143,7 +153,13 @@ public class FeedLoaderService extends IntentService {
 
         @Override
         public void addCategory(String label, String term) {
-            // Ignore it for now...
+            tagVals.clear();
+            tagVals.put(StreamContract.Tags.Columns.TITLE, label);
+            tagVals.put(StreamContract.Tags.Columns.DESC, term);
+            writeTag(tagVals);
+
+            if (0 < tags.length()) { tags.append(","); }
+            tags.append(label);
         }
     }
 
@@ -189,10 +205,16 @@ public class FeedLoaderService extends IntentService {
         stopSelf();
     }
 
-    void writePost(ContentValues post, ContentValues author) {
-        ContentResolver resolver = getContentResolver();
-        //resolver.insert(StreamContract.Authors.URI, author);
-        if (null != resolver.insert(StreamContract.Posts.URI, post)) { added++; }
+    void writeTag(ContentValues category) {
+        getContentResolver().insert(StreamContract.Tags.URI, category);
+    }
+
+    void writeAuthor(ContentValues author) {
+        getContentResolver().insert(StreamContract.Authors.URI, author);
+    }
+
+    void writePost(ContentValues post) {
+        if (null != getContentResolver().insert(StreamContract.Posts.URI, post)) { added++; }
     }
 
     private URL getFeedUrl() throws MalformedURLException {

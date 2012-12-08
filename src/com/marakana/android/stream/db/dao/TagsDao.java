@@ -50,35 +50,21 @@ public class TagsDao {
     private static final String TABLE = "tags";
 
     private static final String COL_ID = "id";
+    private static final String COL_URI = "uri";
     private static final String COL_TITLE = "title";
-    private static final String COL_LINK = "link";
     private static final String COL_DESC = "description";
     private static final String COL_TAGS_ICON = "_data";
 
     private static final String CREATE_TAGS_TABLE
         = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
+            + COL_URI + " text UNIQUE,"
             + COL_TITLE + " text,"
-            + COL_LINK + " text,"
-            + COL_DESC + " text,"
-            + COL_TAGS_ICON + " text)";
-
-    private static final String TABLE_REL = "post_tags";
-    private static final String COL_POST = "post";
-    private static final String COL_TAG = "tag";
-
-    private static final String CREATE_REL_TABLE
-        = "CREATE TABLE " + TABLE_REL + " ("
-            + COL_POST + " integer REFERENCES " + PostsDao.TABLE + "(" + PostsDao.COL_ID + "),"
-            + COL_TAG + " integer REFERENCES " + TABLE + "(" + COL_ID + "),"
             + COL_DESC + " text,"
             + COL_TAGS_ICON + " text)";
 
     private static final String DROP_TAGS_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
-
-    private static final String DROP_REL_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE_REL;
 
     private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
 
@@ -91,11 +77,11 @@ public class TagsDao {
                 StreamContract.Tags.Columns.ID,
                 new ColumnDef(COL_ID, ColumnDef.Type.LONG));
         m.put(
+                StreamContract.Tags.Columns.LINK,
+                new ColumnDef(COL_URI, ColumnDef.Type.STRING));
+        m.put(
                 StreamContract.Tags.Columns.TITLE,
                 new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
-        m.put(
-                StreamContract.Tags.Columns.LINK,
-                new ColumnDef(COL_LINK, ColumnDef.Type.STRING));
         m.put(
                 StreamContract.Tags.Columns.DESC,
                 new ColumnDef(COL_DESC, ColumnDef.Type.STRING));
@@ -112,15 +98,14 @@ public class TagsDao {
                 StreamContract.Tags.Columns.ID,
                 COL_ID + " AS " + StreamContract.Tags.Columns.ID);
         m.put(
+                StreamContract.Tags.Columns.LINK,
+                COL_URI + " AS " + StreamContract.Tags.Columns.LINK);
+        m.put(
                 StreamContract.Tags.Columns.TITLE,
                 COL_TITLE + " AS " + StreamContract.Tags.Columns.TITLE);
         m.put(
                 StreamContract.Tags.Columns.DESC,
                 COL_DESC + " AS " + StreamContract.Tags.Columns.DESC);
-        m.put(
-                StreamContract.Tags.Columns.LINK,
-                COL_LINK + " AS " + StreamContract.Tags.Columns.LINK);
-        m.put(COL_TAGS_ICON, COL_TAGS_ICON);
         COL_AS_MAP = Collections.unmodifiableMap(m);
     }
 
@@ -129,8 +114,6 @@ public class TagsDao {
      * @param db
      */
     public static void dropTable(Context context, SQLiteDatabase db) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "drop rel db: " + DROP_REL_TABLE); }
-        db.execSQL(DROP_REL_TABLE);
         if (BuildConfig.DEBUG) { Log.d(TAG, "drop tags db: " + DROP_TAGS_TABLE); }
         db.execSQL(DROP_TAGS_TABLE);
     }
@@ -142,9 +125,8 @@ public class TagsDao {
     public static void initDb(Context context, SQLiteDatabase db) {
         if (BuildConfig.DEBUG) { Log.d(TAG, "create tags db: " + CREATE_TAGS_TABLE); }
         db.execSQL(CREATE_TAGS_TABLE);
-        if (BuildConfig.DEBUG) { Log.d(TAG, "create rel db: " + CREATE_REL_TABLE); }
-        db.execSQL(CREATE_REL_TABLE);
     }
+
 
     private final DbHelper dbHelper;
     private final StreamProvider provider;
@@ -163,10 +145,17 @@ public class TagsDao {
      * @return pk for inserted row
      */
     public long insert(ContentValues vals) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "insert tag: " + vals); }
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
-        catch (SQLException e) { Log.w(TAG, "Insert failed: ", e); }
+        try {
+            pk = dbHelper.getDb().insertWithOnConflict(
+               TABLE,
+               null,
+               vals,
+               SQLiteDatabase.CONFLICT_IGNORE);
+        }
+        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }
 

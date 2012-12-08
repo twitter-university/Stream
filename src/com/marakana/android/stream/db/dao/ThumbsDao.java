@@ -37,16 +37,16 @@ public class ThumbsDao {
 
     static final String TABLE = "thumbs";
     static final String COL_ID = "id";
+    static final String COL_URI = "uri";
 
     private static final String COL_DATA = "_data";
-    private static final String COL_LINK = "link";
     private static final String COL_LAST_USE = "last_use";
 
     private static final String CREATE_TABLE
         = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
             + COL_DATA + " text,"
-            + COL_LINK + " text,"
+            + COL_URI + " text,"
             + COL_LAST_USE + " integer)";
 
     private static final String DROP_TABLE
@@ -84,8 +84,15 @@ public class ThumbsDao {
      * @return pk for inserted row
      */
     public long insert(ContentValues vals) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "insert thumb: " + vals); }
         long pk = -1;
-        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
+        try {
+            pk = dbHelper.getDb().insertWithOnConflict(
+               TABLE,
+               null,
+               vals,
+               SQLiteDatabase.CONFLICT_IGNORE);
+        }
         catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }

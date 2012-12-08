@@ -19,7 +19,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String TAG = "DB";
 
     private static final String DB_NAME = "stream.db";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION =  6;
 
 
     private final Context context;

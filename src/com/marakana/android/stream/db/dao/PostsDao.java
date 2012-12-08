@@ -50,6 +50,7 @@ public class PostsDao {
     private static final String COL_TITLE = "title";
     private static final String COL_AUTHOR = "author";
     private static final String COL_DATE = "pub_date";
+    private static final String COL_TAGS = "tags";
     private static final String COL_SUMMARY = "summary";
     private static final String COL_CONTENT = "content";
     private static final String COL_THUMB = "thumb";
@@ -57,19 +58,19 @@ public class PostsDao {
     private static final String CREATE_TABLE
         = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
-            + COL_URI + " text,"
+            + COL_URI + " text UNIQUE,"
             + COL_TITLE + " text,"
-            + COL_AUTHOR + " integer,"
+            + COL_AUTHOR + " text REFERENCES " + AuthorsDao.TABLE + "(" + AuthorsDao.COL_URI + "),"
             + COL_DATE + " integer,"
+            + COL_TAGS + " text,"
             + COL_SUMMARY + " text,"
-            + COL_THUMB + " integer,"
+            + COL_THUMB + " text,"
             + COL_CONTENT + " text)";
 
-    private static final String DROP_TABLE
-        = "DROP TABLE IF EXISTS " + TABLE;
+    private static final String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE;
 
     private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
-    private static final String PK_CONSTRAINT = COL_ID + "=";
+    private static final String PK_CONSTRAINT = TABLE + "." + COL_ID + "=";
 
     private static final Map<String, ColumnDef> COL_MAP;
     static {
@@ -90,11 +91,14 @@ public class PostsDao {
             StreamContract.Posts.Columns.PUB_DATE,
             new ColumnDef(COL_DATE, ColumnDef.Type.LONG));
         m.put(
+            StreamContract.Posts.Columns.TAGS,
+            new ColumnDef(COL_TAGS, ColumnDef.Type.STRING));
+        m.put(
             StreamContract.Posts.Columns.SUMMARY,
             new ColumnDef(COL_SUMMARY, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Posts.Columns.THUMB,
-            new ColumnDef(COL_THUMB, ColumnDef.Type.LONG));
+            new ColumnDef(COL_THUMB, ColumnDef.Type.STRING));
         m.put(
             StreamContract.Posts.Columns.CONTENT,
             new ColumnDef(COL_CONTENT, ColumnDef.Type.STRING));
@@ -120,6 +124,9 @@ public class PostsDao {
             StreamContract.Posts.Columns.SUMMARY,
             COL_SUMMARY + " AS " + StreamContract.Posts.Columns.SUMMARY);
         m.put(
+            StreamContract.Posts.Columns.TAGS,
+            COL_TAGS + " AS " + StreamContract.Posts.Columns.TAGS);
+        m.put(
             StreamContract.Posts.Columns.CONTENT,
             COL_CONTENT + " AS " + StreamContract.Posts.Columns.CONTENT);
         m.put(
@@ -129,6 +136,45 @@ public class PostsDao {
             "MAX(" + StreamContract.Posts.Columns.PUB_DATE + ") AS "
                 + StreamContract.Posts.Columns.PUB_DATE);
          COL_AS_MAP = Collections.unmodifiableMap(m);
+    }
+
+    private static final String FEED_TABLE
+        = TABLE + " INNER JOIN " + AuthorsDao.TABLE
+            + " ON(" + TABLE + "." + COL_AUTHOR
+                + "=" + AuthorsDao.TABLE + "." + AuthorsDao.COL_URI + ")"
+            + " LEFT OUTER JOIN " + ThumbsDao.TABLE
+                + " ON(" + TABLE + "." + COL_THUMB
+                    + "=" + ThumbsDao.TABLE + "." + ThumbsDao.COL_URI + ")";
+
+    private static final Map<String, String> FEED_COL_AS_MAP;
+    static {
+        Map<String, String> m = new HashMap<String, String>();
+        m.put(
+            StreamContract.Feed.Columns.ID,
+            TABLE + "." + COL_ID + " AS " + StreamContract.Feed.Columns.ID);
+        m.put(
+            StreamContract.Feed.Columns.TITLE,
+            TABLE + "." + COL_TITLE + " AS " + StreamContract.Feed.Columns.TITLE);
+        m.put(
+            StreamContract.Feed.Columns.AUTHOR,
+            AuthorsDao.TABLE + "." + AuthorsDao.COL_NAME
+                + " AS " + StreamContract.Feed.Columns.AUTHOR);
+        m.put(
+            StreamContract.Feed.Columns.PUB_DATE,
+            TABLE + "." + COL_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
+        m.put(
+            StreamContract.Feed.Columns.SUMMARY,
+            TABLE + "." + COL_SUMMARY + " AS " + StreamContract.Feed.Columns.SUMMARY);
+        m.put(
+            StreamContract.Feed.Columns.TAGS,
+            TABLE + "." + COL_TAGS + " AS " + StreamContract.Feed.Columns.TAGS);
+        m.put(
+            StreamContract.Feed.Columns.CONTENT,
+            TABLE + "." + COL_CONTENT + " AS " + StreamContract.Feed.Columns.CONTENT);
+        m.put(
+            StreamContract.Feed.Columns.THUMB,
+            ThumbsDao.TABLE + "." + ThumbsDao.COL_ID + " AS " + StreamContract.Feed.Columns.THUMB);
+        FEED_COL_AS_MAP = Collections.unmodifiableMap(m);
     }
 
     /**
@@ -162,9 +208,16 @@ public class PostsDao {
      * @return pk for inserted row
      */
     public long insert(ContentValues vals) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "insert post: " + vals); }
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
+        try {
+            pk = dbHelper.getDb().insertWithOnConflict(
+               TABLE,
+               null,
+               vals,
+               SQLiteDatabase.CONFLICT_IGNORE);
+        }
         catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }
@@ -184,6 +237,29 @@ public class PostsDao {
         qb.setProjectionMap(COL_AS_MAP);
 
         qb.setTables(TABLE);
+
+        if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
+
+        if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
+
+        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
+    }
+
+    /**
+     * @param proj
+     * @param sel
+     * @param selArgs
+     * @param ord
+     * @param pk
+     * @return cursor
+     */
+    public Cursor queryFeed(String[] proj, String sel, String[] selArgs, String ord, long pk) {
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setStrict(true);
+
+        qb.setProjectionMap(FEED_COL_AS_MAP);
+
+        qb.setTables(FEED_TABLE);
 
         if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
 

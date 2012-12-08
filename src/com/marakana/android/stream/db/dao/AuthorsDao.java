@@ -45,15 +45,14 @@ public class AuthorsDao {
 
     static final String TABLE = "authors";
     static final String COL_ID = "id";
-
-    private static final String COL_NAME = "name";
-    private static final String COL_LINK = "link";
+    static final String COL_URI = "uri";
+    static final String COL_NAME = "name";
 
     private static final String CREATE_TABLE
         = "CREATE TABLE " + TABLE + " ("
             + COL_ID + " integer PRIMARY KEY AUTOINCREMENT,"
-            + COL_NAME + " text,"
-            + COL_LINK + " text)";
+            + COL_URI + " text UNIQUE,"
+            + COL_NAME + " text)";
 
     private static final String DROP_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
@@ -68,11 +67,11 @@ public class AuthorsDao {
             StreamContract.Authors.Columns.ID,
             new ColumnDef(COL_ID, ColumnDef.Type.LONG));
         m.put(
+            StreamContract.Authors.Columns.LINK,
+            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
+        m.put(
             StreamContract.Authors.Columns.NAME,
             new ColumnDef(COL_NAME, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Authors.Columns.LINK,
-            new ColumnDef(COL_LINK, ColumnDef.Type.STRING));
         COL_MAP = Collections.unmodifiableMap(m);
     }
 
@@ -83,11 +82,11 @@ public class AuthorsDao {
             StreamContract.Authors.Columns.ID,
             COL_ID + " AS " + StreamContract.Authors.Columns.ID);
         m.put(
+            StreamContract.Authors.Columns.LINK,
+            COL_URI + " AS " + StreamContract.Authors.Columns.LINK);
+        m.put(
             StreamContract.Authors.Columns.NAME,
             COL_NAME + " AS " + StreamContract.Authors.Columns.NAME);
-        m.put(
-            StreamContract.Authors.Columns.LINK,
-            COL_LINK + " AS " + StreamContract.Authors.Columns.LINK);
          COL_AS_MAP = Collections.unmodifiableMap(m);
     }
 
@@ -121,9 +120,16 @@ public class AuthorsDao {
      * @return pk for inserted row
      */
     public long insert(ContentValues vals) {
+        if (BuildConfig.DEBUG) { Log.d(TAG, "insert author: " + vals); }
         long pk = -1;
         vals = StreamProvider.translateCols(COL_MAP, vals);
-        try { pk = dbHelper.getDb().insert(TABLE, null, vals); }
+        try {
+            pk = dbHelper.getDb().insertWithOnConflict(
+               TABLE,
+               null,
+               vals,
+               SQLiteDatabase.CONFLICT_IGNORE);
+        }
         catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
         return pk;
     }

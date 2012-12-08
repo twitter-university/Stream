@@ -29,11 +29,12 @@ public class FeedFragment extends ListFragment {
     private static final int LOADER_ID = 47;
 
     static final String[] FROM = {
-        StreamContract.Posts.Columns.THUMB,
-        StreamContract.Posts.Columns.TITLE,
-        StreamContract.Posts.Columns.SUMMARY,
-        StreamContract.Posts.Columns.AUTHOR,
-        StreamContract.Posts.Columns.PUB_DATE,
+        StreamContract.Feed.Columns.THUMB,
+        StreamContract.Feed.Columns.TITLE,
+        StreamContract.Feed.Columns.SUMMARY,
+        StreamContract.Feed.Columns.AUTHOR,
+        StreamContract.Feed.Columns.PUB_DATE,
+        StreamContract.Feed.Columns.TAGS
     };
 
     private static final int[] TO = {
@@ -42,6 +43,7 @@ public class FeedFragment extends ListFragment {
         R.id.feed_summary,
         R.id.feed_author,
         R.id.feed_date,
+        R.id.feed_tags,
     };
 
     private final SimpleCursorAdapter.ViewBinder VIEW_BINDER
@@ -81,7 +83,7 @@ public class FeedFragment extends ListFragment {
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
             return new CursorLoader(
                 getActivity(),
-                StreamContract.Posts.URI,
+                StreamContract.Feed.URI,
                 PROJ,
                 null,
                 null,

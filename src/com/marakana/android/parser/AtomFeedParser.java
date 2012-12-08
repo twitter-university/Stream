@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.util.Xml;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -188,7 +186,7 @@ public class AtomFeedParser {
      * @throws IOException
      */
     public void parse(InputStream in, PostHandler hdlr) throws XmlPullParserException, IOException {
-        XmlPullParser parser = getParser();
+        XmlPullParser parser = ParserFactory.getParser();
         parser.setInput(in, null);
         while (true) {
             switch (parser.getEventType()) {
@@ -300,11 +298,6 @@ public class AtomFeedParser {
         hdlr.addCategory(label, term);
 
         parser.next();
-    }
-
-    /** @throws XmlPullParserException */
-    private XmlPullParser getParser() throws XmlPullParserException {
-        return Xml.newPullParser();
     }
 }
 

@@ -21,6 +21,46 @@ public final class StreamContract {
         .build();
 
     /** The posts table */
+    public static final class Feed {
+        private Feed() {}
+
+        /** Posts table */
+        public static final String TABLE = "feed";
+
+        /** Posts table URI */
+        public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
+
+        /** Posts table DIR type */
+        public static final String CONTENT_TYPE_DIR
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + " + /vnd.marakana.stream.feed";
+        /** Posts table ITEM type */
+        public static final String CONTENT_TYPE_ITEM
+            = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/vnd.marakana.stream.feed";
+
+        /** Posts table columns. */
+        public static final class Columns {
+            private Columns() {}
+
+            /** article pk */
+            public static final String ID = BaseColumns._ID;
+            /** article title */
+            public static final String TITLE = "title";
+            /** article author */
+            public static final String AUTHOR = "author";
+            /** article publication data */
+            public static final String PUB_DATE = "pub_date";
+            /** article summary */
+            public static final String SUMMARY = "summary";
+            /** article tags */
+            public static final String TAGS = "tags";
+            /** ref to article content */
+            public static final String CONTENT = "content";
+            /** ref to article thumbnail */
+            public static final String THUMB = "thumb";
+        }
+    }
+
+    /** The posts table */
     public static final class Posts {
         private Posts() {}
 
@@ -51,7 +91,9 @@ public final class StreamContract {
             public static final String AUTHOR = "author";
             /** article publication data */
             public static final String PUB_DATE = "pub_date";
-            /** article description */
+            /** article tags */
+            public static final String TAGS = "tags";
+            /** article summary */
             public static final String SUMMARY = "summary";
             /** ref to article content */
             public static final String CONTENT = "content";
@@ -121,6 +163,40 @@ public final class StreamContract {
             public static final String LINK = "link";
             /** tag title */
             public static final String TITLE = "title";
+            /** tag description */
+            public static final String DESC = "description";
+        }
+    }
+
+    /**
+     * Thumbs
+     */
+    public static final class Thumbs {
+        private Thumbs() {}
+
+        /** Thumbs table */
+        public static final String TABLE = "tags";
+
+        /** Thumbs table URI */
+        public static final Uri URI = URI_BASE.buildUpon().appendPath(TABLE).build();
+
+        /** Thumbs table DIR type */
+        public static final String CONTENT_TYPE_DIR
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.marakana.stream.thumb";
+        /** Feed table ITME type */
+        public static final String CONTENT_TYPE_ITEM
+            = ContentResolver.CURSOR_DIR_BASE_TYPE + "/vnd.marakana.stream.thumb";
+
+        /** Standard RSS column names. */
+        public static final class Columns {
+            private Columns() {}
+
+            /** tag pk */
+            public static final String ID = BaseColumns._ID;
+            /** tag uri */
+            public static final String LINK = "link";
+            /** tag title */
+            public static final String LOCAL = "local_name";
             /** tag description */
             public static final String DESC = "description";
         }

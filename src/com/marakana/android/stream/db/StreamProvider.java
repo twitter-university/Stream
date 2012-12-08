@@ -27,26 +27,56 @@ public class StreamProvider extends ContentProvider {
 
     private static final int FEED_ITEM = 1;
     private static final int FEED_DIR = 2;
-    private static final int TAG_ITEM = 3;
-    private static final int TAG_DIR = 4;
+    private static final int POST_ITEM = 3;
+    private static final int POST_DIR = 4;
+    private static final int AUTHOR_ITEM = 5;
+    private static final int AUTHOR_DIR = 6;
+    private static final int THUMB_ITEM = 7;
+    private static final int THUMB_DIR = 8;
+    private static final int TAG_ITEM = 9;
+    private static final int TAG_DIR = 10;
     private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static {
         uriMatcher.addURI(
-            StreamContract.AUTHORITY,
-            StreamContract.Posts.TABLE,
-            FEED_DIR);
+                StreamContract.AUTHORITY,
+                StreamContract.Feed.TABLE,
+                FEED_DIR);
         uriMatcher.addURI(
-            StreamContract.AUTHORITY,
-            StreamContract.Posts.TABLE + "/#",
-            FEED_ITEM);
+                StreamContract.AUTHORITY,
+                StreamContract.Feed.TABLE + "/#",
+                FEED_ITEM);
         uriMatcher.addURI(
-            StreamContract.AUTHORITY,
-            StreamContract.Tags.TABLE,
-            TAG_DIR);
+                StreamContract.AUTHORITY,
+                StreamContract.Posts.TABLE,
+                POST_DIR);
         uriMatcher.addURI(
-            StreamContract.AUTHORITY,
-            StreamContract.Tags.TABLE + "/#",
-            TAG_ITEM);
+                StreamContract.AUTHORITY,
+                StreamContract.Posts.TABLE + "/#",
+                POST_ITEM);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Authors.TABLE,
+                AUTHOR_DIR);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Authors.TABLE + "/#",
+                AUTHOR_ITEM);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Thumbs.TABLE,
+                THUMB_DIR);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Thumbs.TABLE + "/#",
+                THUMB_ITEM);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Tags.TABLE,
+                TAG_DIR);
+        uriMatcher.addURI(
+                StreamContract.AUTHORITY,
+                StreamContract.Tags.TABLE + "/#",
+                TAG_ITEM);
     }
 
     /**
@@ -95,15 +125,27 @@ public class StreamProvider extends ContentProvider {
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
             case FEED_ITEM:
-                return StreamContract.Posts.CONTENT_TYPE_ITEM;
+                return StreamContract.Feed.CONTENT_TYPE_ITEM;
             case FEED_DIR:
+                return StreamContract.Feed.CONTENT_TYPE_DIR;
+            case POST_ITEM:
+                return StreamContract.Posts.CONTENT_TYPE_ITEM;
+            case POST_DIR:
                 return StreamContract.Posts.CONTENT_TYPE_DIR;
+            case AUTHOR_ITEM:
+                return StreamContract.Authors.CONTENT_TYPE_ITEM;
+            case AUTHOR_DIR:
+                return StreamContract.Authors.CONTENT_TYPE_DIR;
             case TAG_ITEM:
                 return StreamContract.Tags.CONTENT_TYPE_ITEM;
             case TAG_DIR:
                 return StreamContract.Tags.CONTENT_TYPE_DIR;
+            case THUMB_ITEM:
+                return StreamContract.Thumbs.CONTENT_TYPE_ITEM;
+            case THUMB_DIR:
+                return StreamContract.Thumbs.CONTENT_TYPE_DIR;
             default:
-                return null;
+                throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
     }
 
@@ -134,21 +176,26 @@ public class StreamProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues vals) {
         long pk;
         switch (uriMatcher.match(uri)) {
-            case FEED_DIR:
+            case POST_DIR:
                 pk = posts.insert(vals);
+                notifyUri(StreamContract.Feed.URI, pk); // notify the feed
+                break;
+
+            case AUTHOR_DIR:
+                pk = authors.insert(vals);
+                // might want to notify the feed?
+                break;
+
+            case TAG_DIR:
+                pk = tags.insert(vals);
                 break;
 
             default:
                 throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
 
-        if (0 > pk) { uri = null; }
-        else {
-            uri = uri.buildUpon().appendPath(String.valueOf(pk)).build();
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
+        uri = notifyUri(uri, pk);
         if (BuildConfig.DEBUG) { Log.d(TAG, "inserted @" + uri + ": " + vals); }
-
         return uri;
     }
 
@@ -167,6 +214,12 @@ public class StreamProvider extends ContentProvider {
             case FEED_ITEM:
                 pk = ContentUris.parseId(uri);
             case FEED_DIR:
+                cur = posts.queryFeed(proj, sel, selArgs, ord, pk);
+                break;
+
+            case POST_ITEM:
+                pk = ContentUris.parseId(uri);
+            case POST_DIR:
                 cur = posts.query(proj, sel, selArgs, ord, pk);
                 break;
 
@@ -187,6 +240,7 @@ public class StreamProvider extends ContentProvider {
         }
 
         if (BuildConfig.DEBUG) { Log.d(TAG, "query @" + uri + ": " + count); }
+
         return cur;
     }
 
@@ -226,5 +280,14 @@ public class StreamProvider extends ContentProvider {
      */
     public ParcelFileDescriptor openData(Uri uri, String mode) throws FileNotFoundException {
         return openFileHelper(uri, mode);
+    }
+
+    private Uri notifyUri(Uri uri, long pk) {
+        if (0 > pk) { uri = null; }
+        else {
+            uri = uri.buildUpon().appendPath(String.valueOf(pk)).build();
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return uri;
     }
 }
