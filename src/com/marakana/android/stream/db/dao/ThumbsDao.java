@@ -15,8 +15,15 @@
 */
 package com.marakana.android.stream.db.dao;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
@@ -24,6 +31,7 @@ import com.marakana.android.stream.db.ProjectionMap;
 import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
+import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -53,6 +61,8 @@ public class ThumbsDao extends BaseDao {
     private static final String DROP_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
 
+    private static final String PK_CONSTRAINT = COL_ID + "=";
+
 //    private static final SecureRandom random = new SecureRandom();
 //
 //    private static String makeFileName() {
@@ -77,10 +87,14 @@ public class ThumbsDao extends BaseDao {
         db.execSQL(CREATE_TABLE);
     }
 
+
+    private final StreamProvider provider;
+
     /**
+     * @param provider
      * @param dbHelper
      */
-    public ThumbsDao(DbHelper dbHelper) {
+    public ThumbsDao(StreamProvider provider, DbHelper dbHelper) {
         super(
             TAG,
             dbHelper,
@@ -96,5 +110,55 @@ public class ThumbsDao extends BaseDao {
                 .addColumn(StreamContract.Thumbs.Columns.ID, COL_ID)
                 .addColumn(StreamContract.Thumbs.Columns.LINK, COL_URI)
                 .build());
+        this.provider = provider;
+    }
+
+    /**
+     * @param uri
+     * @return descriptor for open file
+     * @throws FileNotFoundException
+     */
+    public ParcelFileDescriptor openFile(Uri uri) throws FileNotFoundException {
+        long pk = ContentUris.parseId(uri);
+        if (0 > pk) { throw new IllegalArgumentException("Malformed URI: " + uri); }
+
+        String fName = null;
+        Cursor c = null;
+        try {
+            c = getDb().query(
+                    TABLE,
+                    new String[] { COL_DATA },
+                    PK_CONSTRAINT + pk,
+                    null,
+                    null,
+                    null,
+                    null);
+
+            if (1 != c.getCount()) { throw new FileNotFoundException("No tag for: " + uri); }
+            c.moveToFirst();
+
+            fName = c.getString(c.getColumnIndex(COL_DATA));
+        }
+        catch (Exception e) {
+            Log.w(TAG, "WTF?", e);
+        }
+        finally {
+            if (null != c) {
+                try { c.close(); } catch (Exception e) { }
+            }
+        }
+
+        if (BuildConfig.DEBUG) { Log.d(TAG, "Opening: " + fName); }
+        ParcelFileDescriptor fd = null;
+        try {
+            fd = ParcelFileDescriptor.open(
+                    new File(provider.getContext().getFilesDir(), fName),
+                    ParcelFileDescriptor.MODE_READ_ONLY);
+        }
+        catch (Exception e) {
+            throw new FileNotFoundException("Failed opening : " + fName);
+        }
+
+        return fd;
     }
 }

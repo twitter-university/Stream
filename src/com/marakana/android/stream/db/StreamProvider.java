@@ -94,8 +94,8 @@ public class StreamProvider extends ContentProvider {
         if (null == dbHelper) { return false; }
         posts = new PostsDao(dbHelper);
         authors = new AuthorsDao(dbHelper);
-        thumbs = new ThumbsDao(dbHelper);
-        tags = new TagsDao(this, dbHelper);
+        tags = new TagsDao(dbHelper);
+        thumbs = new ThumbsDao(this, dbHelper);
         return true;
     }
 
@@ -261,11 +261,11 @@ public class StreamProvider extends ContentProvider {
         ParcelFileDescriptor fd = null;
 
         switch (uriMatcher.match(uri)) {
-            case TAG_ITEM:
+            case THUMB_ITEM:
                 if (!"r".equals(mode)) {
                     throw new SecurityException("Write access forbidden");
                 }
-                fd = tags.openFile(uri);
+                fd = thumbs.openFile(uri);
                 break;
 
             /// maybe just ignore it?

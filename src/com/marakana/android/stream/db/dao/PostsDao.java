@@ -68,10 +68,6 @@ public class PostsDao extends BaseDao {
 
     private static final String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE;
 
-    private static final String PK_CONSTRAINT = COL_ID + "=";
-
-    private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
-
     private static final String FEED_TABLE
         = TABLE + " INNER JOIN " + AuthorsDao.TABLE
             + " ON(" + TABLE + "." + COL_AUTHOR
@@ -91,6 +87,9 @@ public class PostsDao extends BaseDao {
         .addColumn(StreamContract.Feed.Columns.THUMB, ThumbsDao.TABLE, ThumbsDao.COL_ID)
         .build();
 
+    private static final String PK_CONSTRAINT = COL_ID + "=";
+    private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
+
     /**
      * @param context
      * @param db
@@ -109,8 +108,6 @@ public class PostsDao extends BaseDao {
         db.execSQL(CREATE_TABLE);
     }
 
-
-
     /**
      * @param dbHelper
      */
@@ -120,7 +117,7 @@ public class PostsDao extends BaseDao {
             dbHelper,
             TABLE,
             COL_ID,
-            StreamContract.Posts.Columns.PUB_DATE + " DESC",
+            DEFAULT_SORT,
             new ColumnMap.Builder()
                 .addColumn(StreamContract.Posts.Columns.ID, COL_ID, ColumnMap.Type.LONG)
                 .addColumn(StreamContract.Posts.Columns.LINK, COL_URI, ColumnMap.Type.STRING)
@@ -171,12 +168,12 @@ public class PostsDao extends BaseDao {
     /**
      * @param proj
      * @param sel
-     * @param selArgs
+     * @param args
      * @param ord
      * @param pk
      * @return cursor
      */
-    public Cursor queryFeed(String[] proj, String sel, String[] selArgs, String ord, long pk) {
+    public Cursor queryFeed(String[] proj, String sel, String[] args, String ord, long pk) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setStrict(true);
 
@@ -188,6 +185,6 @@ public class PostsDao extends BaseDao {
 
         if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
 
-        return qb.query(getDb(), proj, sel, selArgs, null, null, ord);
+        return qb.query(getDb(), proj, sel, args, null, null, ord);
     }
 }

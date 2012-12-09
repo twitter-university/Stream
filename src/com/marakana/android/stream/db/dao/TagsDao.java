@@ -15,14 +15,8 @@
  */
 package com.marakana.android.stream.db.dao;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
@@ -30,7 +24,6 @@ import com.marakana.android.stream.db.ProjectionMap;
 import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
-import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -60,8 +53,6 @@ public class TagsDao extends BaseDao {
     private static final String DROP_TAGS_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
 
-    private static final String PK_CONSTRAINT = COL_ID + "=";
-
     /**
      * @param context
      * @param db
@@ -80,14 +71,10 @@ public class TagsDao extends BaseDao {
         db.execSQL(CREATE_TAGS_TABLE);
     }
 
-
-    private final StreamProvider provider;
-
     /**
-     * @param provider
      * @param dbHelper
      */
-    public TagsDao(StreamProvider provider, DbHelper dbHelper) {
+    public TagsDao(DbHelper dbHelper) {
         super(
             TAG,
             dbHelper,
@@ -107,55 +94,5 @@ public class TagsDao extends BaseDao {
                 .addColumn(StreamContract.Tags.Columns.TITLE, COL_TITLE)
                 .addColumn(StreamContract.Tags.Columns.DESC, COL_DESC)
                 .build());
-        this.provider = provider;
-    }
-
-    /**
-     * @param uri
-     * @return descriptor for open file
-     * @throws FileNotFoundException
-     */
-    public ParcelFileDescriptor openFile(Uri uri) throws FileNotFoundException {
-        long pk = ContentUris.parseId(uri);
-        if (0 > pk) { throw new IllegalArgumentException("Malformed URI: " + uri); }
-
-        String fName = null;
-        Cursor c = null;
-        try {
-            c = getDb().query(
-                    TABLE,
-                    new String[] { COL_TAGS_ICON },
-                    PK_CONSTRAINT + pk,
-                    null,
-                    null,
-                    null,
-                    null);
-
-            if (1 != c.getCount()) { throw new FileNotFoundException("No tag for: " + uri); }
-            c.moveToFirst();
-
-            fName = c.getString(c.getColumnIndex(COL_TAGS_ICON));
-        }
-        catch (Exception e) {
-            Log.w(TAG, "WTF?", e);
-        }
-        finally {
-            if (null != c) {
-                try { c.close(); } catch (Exception e) { }
-            }
-        }
-
-        if (BuildConfig.DEBUG) { Log.d(TAG, "Opening: " + fName); }
-        ParcelFileDescriptor fd = null;
-        try {
-            fd = ParcelFileDescriptor.open(
-                    new File(provider.getContext().getFilesDir(), fName),
-                    ParcelFileDescriptor.MODE_READ_ONLY);
-        }
-        catch (Exception e) {
-            throw new FileNotFoundException("Failed opening : " + fName);
-        }
-
-        return fd;
     }
 }

@@ -53,7 +53,7 @@ public class FeedFragment extends ListFragment {
             switch (view.getId()) {
                 case R.id.feed_thumb:
 //                    ((ImageView) view).setImageDrawable(
-//                            iconMgr.getIcon(StreamContract.Tags.URI.buildUpon()
+//                            iconMgr.getIcon(StreamContract.Thumbs.URI.buildUpon()
 //                                    .appendPath(cur.getString(idx)).build()));
                     break;
                 case R.id.feed_date:

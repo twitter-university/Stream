@@ -111,12 +111,12 @@ public abstract class BaseDao {
     /**
      * @param proj
      * @param sel
-     * @param selArgs
+     * @param args
      * @param ord
      * @param pk
      * @return cursor
      */
-    public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
+    public Cursor query(String[] proj, String sel, String[] args, String ord, long pk) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setStrict(true);
 
@@ -128,6 +128,6 @@ public abstract class BaseDao {
 
         if (TextUtils.isEmpty(ord)) { ord = defaultSort; }
 
-        return qb.query(getDb(), proj, sel, selArgs, null, null, ord);
+        return qb.query(getDb(), proj, sel, args, null, null, ord);
     }
 }
