@@ -22,7 +22,7 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@id/feed_thumb"
         android:text="@string/post_title"
-        android:textSize="16sp" />
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/feed_summary"
@@ -32,7 +32,7 @@
         android:layout_toRightOf="@id/feed_thumb"
         android:paddingRight="9dp"
         android:text="@string/post_summary"
-        android:textSize="10sp" />
+        android:textSize="14sp" />
     
     <TextView
         android:id="@+id/feed_label_author"
@@ -45,7 +45,7 @@
         android:text="@string/post_label_author"
         android:textColor="@android:color/secondary_text_light"
         android:textStyle="italic"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/feed_author"
@@ -57,7 +57,7 @@
         android:text="@string/post_author"
         android:textColor="@android:color/secondary_text_light"
         android:textStyle="italic"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/feed_label_date"
@@ -69,7 +69,7 @@
         android:text="@string/post_label_date"
         android:textColor="@android:color/secondary_text_light"
         android:textStyle="italic"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/feed_date"
@@ -80,7 +80,7 @@
         android:text="@string/post_date"
         android:textColor="@android:color/secondary_text_light"
         android:textStyle="italic"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/feed_label_tags"
@@ -91,7 +91,7 @@
         android:paddingRight="3dp"
         android:text="@string/post_label_tags"
         android:textColor="@android:color/secondary_text_light"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/feed_tags"
@@ -101,6 +101,6 @@
         android:layout_toRightOf="@id/feed_label_tags"
         android:text="@string/post_tags"
         android:textColor="@android:color/secondary_text_light"
-        android:textSize="8sp" />
+        android:textSize="12sp" />
 
 </RelativeLayout>
