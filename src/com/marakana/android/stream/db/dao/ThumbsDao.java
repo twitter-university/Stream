@@ -15,25 +15,15 @@
 */
 package com.marakana.android.stream.db.dao;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
-import com.marakana.android.stream.db.ColumnDef;
+import com.marakana.android.stream.db.ProjectionMap;
+import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
-import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -41,7 +31,7 @@ import com.marakana.android.stream.db.StreamProvider;
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class ThumbsDao {
+public class ThumbsDao extends BaseDao {
     private static final String TAG = "THUMBS-DAO";
 
     static final String TABLE = "thumbs";
@@ -63,40 +53,11 @@ public class ThumbsDao {
     private static final String DROP_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
 
-    private static final String PK_CONSTRAINT = COL_ID + "=";
-
-    private static final Map<String, ColumnDef> COL_MAP;
-    static {
-        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
-        m.put(
-            StreamContract.Thumbs.Columns.ID,
-            new ColumnDef(COL_ID, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Thumbs.Columns.LINK,
-            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Thumbs.Columns.TYPE,
-            new ColumnDef(COL_TYPE, ColumnDef.Type.STRING));
-        COL_MAP = Collections.unmodifiableMap(m);
-    }
-
-    private static final Map<String, String> COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-            StreamContract.Tags.Columns.ID,
-            COL_ID + " AS " + StreamContract.Tags.Columns.ID);
-        m.put(
-            StreamContract.Tags.Columns.LINK,
-            COL_URI + " AS " + StreamContract.Tags.Columns.LINK);
-        COL_AS_MAP = Collections.unmodifiableMap(m);
-    }
-
-    private static final SecureRandom random = new SecureRandom();
-
-    private static String makeFileName() {
-        return "thumb-" + new BigInteger(130, random).toString(32);
-    }
+//    private static final SecureRandom random = new SecureRandom();
+//
+//    private static String makeFileName() {
+//        return "thumb-" + new BigInteger(130, random).toString(32);
+//    }
 
     /**
      * @param context
@@ -116,53 +77,24 @@ public class ThumbsDao {
         db.execSQL(CREATE_TABLE);
     }
 
-    private final DbHelper dbHelper;
-
     /**
      * @param dbHelper
      */
-    public ThumbsDao(DbHelper dbHelper) { this.dbHelper = dbHelper; }
-
-    /**
-     * @param vals
-     * @return pk for inserted row
-     */
-    public long insert(ContentValues vals) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "insert thumb: " + vals); }
-
-        vals = StreamProvider.translateCols(COL_MAP, vals);
-        vals.put(COL_DATA, makeFileName());
-
-        long pk = -1;
-        try {
-            pk = dbHelper.getDb().insertWithOnConflict(
-               TABLE,
-               null,
-               vals,
-               SQLiteDatabase.CONFLICT_IGNORE);
-        }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
-        return pk;
-    }
-
-    /**
-     * @param proj
-     * @param sel
-     * @param selArgs
-     * @param ord
-     * @param pk
-     * @return cursor
-     */
-    public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
-        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setStrict(true);
-
-        qb.setProjectionMap(COL_AS_MAP);
-
-        qb.setTables(TABLE);
-
-        if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
-
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
+    public ThumbsDao(DbHelper dbHelper) {
+        super(
+            TAG,
+            dbHelper,
+            TABLE,
+            COL_ID,
+            null,
+            new ColumnMap.Builder()
+                .addColumn(StreamContract.Thumbs.Columns.ID, COL_ID, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Thumbs.Columns.LINK, COL_URI, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Thumbs.Columns.TYPE, COL_TYPE, ColumnMap.Type.STRING)
+                .build(),
+            new ProjectionMap.Builder()
+                .addColumn(StreamContract.Thumbs.Columns.ID, COL_ID)
+                .addColumn(StreamContract.Thumbs.Columns.LINK, COL_URI)
+                .build());
     }
 }

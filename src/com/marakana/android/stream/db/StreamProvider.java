@@ -1,9 +1,8 @@
 package com.marakana.android.stream.db;
 
 import java.io.FileNotFoundException;
-import java.util.Map;
-
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -77,24 +76,6 @@ public class StreamProvider extends ContentProvider {
                 StreamContract.AUTHORITY,
                 StreamContract.Tags.TABLE + "/#",
                 TAG_ITEM);
-    }
-
-    /**
-     * @param colMap
-     * @param vals
-     * @return content values for actual table
-     */
-    public static ContentValues translateCols(Map<String, ColumnDef> colMap, ContentValues vals) {
-        ContentValues newVals = new ContentValues();
-        for (String colName : vals.keySet()) {
-            ColumnDef colDef = colMap.get(colName);
-            if (null == colDef) {
-                throw new IllegalArgumentException( "Unrecognized column: " + colName);
-            }
-            colDef.copy(colName, vals, newVals);
-        }
-
-        return newVals;
     }
 
 
@@ -173,14 +154,35 @@ public class StreamProvider extends ContentProvider {
      *      android.content.ContentValues)
      */
     @Override
+    public int bulkInsert(Uri uri, ContentValues[] vals) {
+        int count = -1;
+        switch (uriMatcher.match(uri)) {
+            case POST_DIR:
+                count = posts.bulkInsert(vals);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unrecognized URI: " + uri);
+        }
+
+        if (0 < count) {
+            ContentResolver resolver = getContext().getContentResolver();
+            resolver.notifyChange(StreamContract.Feed.URI, null);
+            resolver.notifyChange(StreamContract.Posts.URI, null);
+        }
+        if (BuildConfig.DEBUG) { Log.d(TAG, "build insert @" + uri + ": " + count); }
+
+        return count;
+    }
+
+    /**
+     * @see android.content.ContentProvider#insert(android.net.Uri,
+     *      android.content.ContentValues)
+     */
+    @Override
     public Uri insert(Uri uri, ContentValues vals) {
         long pk;
         switch (uriMatcher.match(uri)) {
-            case POST_DIR:
-                pk = posts.insert(vals);
-                notifyUri(StreamContract.Feed.URI, pk); // notify the feed
-                break;
-
             case AUTHOR_DIR:
                 pk = authors.insert(vals);
                 // might want to notify the feed?
@@ -198,7 +200,8 @@ public class StreamProvider extends ContentProvider {
                 throw new UnsupportedOperationException("Unrecognized URI: " + uri);
         }
 
-        uri = notifyUri(uri, pk);
+        uri = buildUri(uri, pk);
+        if (null != uri) { getContext().getContentResolver().notifyChange(uri, null); }
         if (BuildConfig.DEBUG) { Log.d(TAG, "inserted @" + uri + ": " + vals); }
         return uri;
     }
@@ -286,12 +289,9 @@ public class StreamProvider extends ContentProvider {
         return openFileHelper(uri, mode);
     }
 
-    private Uri notifyUri(Uri uri, long pk) {
-        if (0 > pk) { uri = null; }
-        else {
-            uri = uri.buildUpon().appendPath(String.valueOf(pk)).build();
-            getContext().getContentResolver().notifyChange(uri, null);
-        }
-        return uri;
+    private Uri buildUri(Uri uri, long pk) {
+        return (0 > pk)
+            ? null
+            : uri.buildUpon().appendPath(String.valueOf(pk)).build();
     }
 }

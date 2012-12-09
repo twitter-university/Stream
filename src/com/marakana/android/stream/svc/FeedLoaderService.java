@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -91,7 +93,7 @@ public class FeedLoaderService extends IntentService {
         private final ContentValues tmpVals = new ContentValues();
         private final StringBuilder tags = new StringBuilder();
 
-        public ContentValuesPostHandler() {}
+        public ContentValuesPostHandler() { }
 
         @Override
         public void finish() {
@@ -169,7 +171,9 @@ public class FeedLoaderService extends IntentService {
     }
 
     private static final AtomicBoolean mutex = new AtomicBoolean();
-    private int added;
+
+
+    private List<ContentValues> posts = new ArrayList<ContentValues>();
 
     /**
      *
@@ -186,14 +190,18 @@ public class FeedLoaderService extends IntentService {
         URL url = null;
         InputStream feed = null;
         if (mutex.getAndSet(true)) { return; }
-        try {
-            added = 0;
 
+        int added = 0;
+        try {
             url = getFeedUrl();
             HttpURLConnection c = (HttpURLConnection) url.openConnection();
             c.addRequestProperty(HEAD_ACCEPT, MIME_TYPE);
 
+            posts.clear();
             parseFeed(c.getInputStream());
+            added = getContentResolver().bulkInsert(
+                    StreamContract.Posts.URI,
+                    posts.toArray(new ContentValues[posts.size()]));
         }
         catch (IOException e) {
             Log.w(TAG, "Failed opening connection to: " + url);
@@ -223,7 +231,7 @@ public class FeedLoaderService extends IntentService {
     }
 
     void writePost(ContentValues vals) {
-        if (null != getContentResolver().insert(StreamContract.Posts.URI, vals)) { added++; }
+        posts.add(new ContentValues(vals));
     }
 
     private URL getFeedUrl() throws MalformedURLException {

@@ -15,24 +15,19 @@
 */
 package com.marakana.android.stream.db.dao;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
-import com.marakana.android.stream.db.ColumnDef;
+import com.marakana.android.stream.db.ProjectionMap;
+import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
-import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -42,7 +37,7 @@ import com.marakana.android.stream.db.StreamProvider;
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class PostsDao {
+public class PostsDao extends BaseDao {
     private static final String TAG = "POSTS-DAO";
 
     static final String TABLE = "posts";
@@ -73,77 +68,9 @@ public class PostsDao {
 
     private static final String DROP_TABLE = "DROP TABLE IF EXISTS " + TABLE;
 
+    private static final String PK_CONSTRAINT = COL_ID + "=";
+
     private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
-    private static final String PK_CONSTRAINT = TABLE + "." + COL_ID + "=";
-
-    private static final Map<String, ColumnDef> COL_MAP;
-    static {
-        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
-        m.put(
-            StreamContract.Posts.Columns.ID,
-            new ColumnDef(COL_ID, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Posts.Columns.LINK,
-            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.TITLE,
-            new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.AUTHOR,
-            new ColumnDef(COL_AUTHOR, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.PUB_DATE,
-            new ColumnDef(COL_DATE, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Posts.Columns.TAGS,
-            new ColumnDef(COL_TAGS, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.SUMMARY,
-            new ColumnDef(COL_SUMMARY, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.THUMB,
-            new ColumnDef(COL_THUMB, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Thumbs.Columns.TYPE,
-            new ColumnDef(COL_TYPE, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Posts.Columns.CONTENT,
-            new ColumnDef(COL_CONTENT, ColumnDef.Type.STRING));
-         COL_MAP = Collections.unmodifiableMap(m);
-    }
-
-    private static final Map<String, String>  COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-            StreamContract.Posts.Columns.ID,
-            COL_ID + " AS " + StreamContract.Posts.Columns.ID);
-        m.put(
-            StreamContract.Posts.Columns.TITLE,
-            COL_TITLE + " AS " + StreamContract.Posts.Columns.TITLE);
-        m.put(
-            StreamContract.Posts.Columns.AUTHOR,
-            COL_AUTHOR + " AS " + StreamContract.Posts.Columns.AUTHOR);
-        m.put(
-            StreamContract.Posts.Columns.PUB_DATE,
-            COL_DATE + " AS " + StreamContract.Posts.Columns.PUB_DATE);
-        m.put(
-            StreamContract.Posts.Columns.SUMMARY,
-            COL_SUMMARY + " AS " + StreamContract.Posts.Columns.SUMMARY);
-        m.put(
-            StreamContract.Posts.Columns.TAGS,
-            COL_TAGS + " AS " + StreamContract.Posts.Columns.TAGS);
-        m.put(
-            StreamContract.Posts.Columns.CONTENT,
-            COL_CONTENT + " AS " + StreamContract.Posts.Columns.CONTENT);
-        m.put(
-            StreamContract.Posts.Columns.THUMB,
-            COL_THUMB + " AS " + StreamContract.Posts.Columns.THUMB);
-        m.put(StreamContract.Posts.Columns.MAX_PUB_DATE,
-            "MAX(" + StreamContract.Posts.Columns.PUB_DATE + ") AS "
-                + StreamContract.Posts.Columns.PUB_DATE);
-         COL_AS_MAP = Collections.unmodifiableMap(m);
-    }
 
     private static final String FEED_TABLE
         = TABLE + " INNER JOIN " + AuthorsDao.TABLE
@@ -153,36 +80,16 @@ public class PostsDao {
                 + " ON(" + TABLE + "." + COL_THUMB
                     + "=" + ThumbsDao.TABLE + "." + ThumbsDao.COL_URI + ")";
 
-    private static final Map<String, String> FEED_COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-            StreamContract.Feed.Columns.ID,
-            TABLE + "." + COL_ID + " AS " + StreamContract.Feed.Columns.ID);
-        m.put(
-            StreamContract.Feed.Columns.TITLE,
-            TABLE + "." + COL_TITLE + " AS " + StreamContract.Feed.Columns.TITLE);
-        m.put(
-            StreamContract.Feed.Columns.AUTHOR,
-            AuthorsDao.TABLE + "." + AuthorsDao.COL_NAME
-                + " AS " + StreamContract.Feed.Columns.AUTHOR);
-        m.put(
-            StreamContract.Feed.Columns.PUB_DATE,
-            TABLE + "." + COL_DATE + " AS " + StreamContract.Feed.Columns.PUB_DATE);
-        m.put(
-            StreamContract.Feed.Columns.SUMMARY,
-            TABLE + "." + COL_SUMMARY + " AS " + StreamContract.Feed.Columns.SUMMARY);
-        m.put(
-            StreamContract.Feed.Columns.TAGS,
-            TABLE + "." + COL_TAGS + " AS " + StreamContract.Feed.Columns.TAGS);
-        m.put(
-            StreamContract.Feed.Columns.CONTENT,
-            TABLE + "." + COL_CONTENT + " AS " + StreamContract.Feed.Columns.CONTENT);
-        m.put(
-            StreamContract.Feed.Columns.THUMB,
-            ThumbsDao.TABLE + "." + ThumbsDao.COL_ID + " AS " + StreamContract.Feed.Columns.THUMB);
-        FEED_COL_AS_MAP = Collections.unmodifiableMap(m);
-    }
+    private static final ProjectionMap FEED_COL_AS_MAP = new ProjectionMap.Builder()
+        .addColumn(StreamContract.Feed.Columns.ID, TABLE, COL_ID)
+        .addColumn(StreamContract.Feed.Columns.TITLE, TABLE, COL_TITLE)
+        .addColumn(StreamContract.Feed.Columns.AUTHOR, AuthorsDao.TABLE, AuthorsDao.COL_NAME)
+        .addColumn(StreamContract.Feed.Columns.PUB_DATE, TABLE, COL_DATE)
+        .addColumn(StreamContract.Feed.Columns.SUMMARY, TABLE, COL_SUMMARY)
+        .addColumn(StreamContract.Feed.Columns.TAGS, TABLE, COL_TAGS)
+        .addColumn(StreamContract.Feed.Columns.CONTENT, TABLE, COL_CONTENT)
+        .addColumn(StreamContract.Feed.Columns.THUMB, ThumbsDao.TABLE, ThumbsDao.COL_ID)
+        .build();
 
     /**
      * @param context
@@ -203,53 +110,62 @@ public class PostsDao {
     }
 
 
-    private final DbHelper dbHelper;
 
     /**
      * @param dbHelper
      */
-    public PostsDao(DbHelper dbHelper) { this.dbHelper = dbHelper; }
-
-    /**
-     * @param vals
-     * @return pk for inserted row
-     */
-    public long insert(ContentValues vals) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "insert post: " + vals); }
-        long pk = -1;
-        vals = StreamProvider.translateCols(COL_MAP, vals);
-        try {
-            pk = dbHelper.getDb().insertWithOnConflict(
-               TABLE,
-               null,
-               vals,
-               SQLiteDatabase.CONFLICT_IGNORE);
-        }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
-        return pk;
+    public PostsDao(DbHelper dbHelper) {
+        super(
+            TAG,
+            dbHelper,
+            TABLE,
+            COL_ID,
+            StreamContract.Posts.Columns.PUB_DATE + " DESC",
+            new ColumnMap.Builder()
+                .addColumn(StreamContract.Posts.Columns.ID, COL_ID, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Posts.Columns.LINK, COL_URI, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.TITLE, COL_TITLE, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.AUTHOR, COL_AUTHOR, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Posts.Columns.PUB_DATE, COL_DATE, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.TAGS, COL_TAGS, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.SUMMARY, COL_SUMMARY, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Posts.Columns.LINK, COL_THUMB, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.TYPE, COL_TYPE, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Posts.Columns.CONTENT, COL_CONTENT, ColumnMap.Type.STRING)
+                .build(),
+            new ProjectionMap.Builder()
+                .addColumn(StreamContract.Posts.Columns.ID, COL_ID)
+                .addColumn(StreamContract.Posts.Columns.TITLE, COL_TITLE)
+                .addColumn(StreamContract.Posts.Columns.AUTHOR, COL_AUTHOR)
+                .addColumn(StreamContract.Posts.Columns.PUB_DATE, COL_DATE)
+                .addColumn(StreamContract.Posts.Columns.SUMMARY, COL_SUMMARY)
+                .addColumn(StreamContract.Posts.Columns.TAGS, COL_TAGS)
+                .addColumn(StreamContract.Posts.Columns.CONTENT, COL_CONTENT)
+                .addColumn(StreamContract.Posts.Columns.THUMB, COL_THUMB)
+                .addColumn(
+                        StreamContract.Posts.Columns.MAX_PUB_DATE,
+                        "MAX(" + StreamContract.Posts.Columns.PUB_DATE + ")")
+                .build());
     }
 
     /**
-     * @param proj
-     * @param sel
-     * @param selArgs
-     * @param ord
-     * @param pk
-     * @return cursor
+     * @param vals
+     * @return the count of inserted rows
      */
-    public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
-        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setStrict(true);
+    public int bulkInsert(ContentValues[] vals) {
+        int n = 0;
 
-        qb.setProjectionMap(COL_AS_MAP);
+        SQLiteDatabase db = getDb();
+        try {
+            db.beginTransaction();
+            for (ContentValues row: vals) {
+                if (0 <= insert(row)) { n++; }
+            }
+            db.setTransactionSuccessful();
+        }
+        finally { db.endTransaction(); }
 
-        qb.setTables(TABLE);
-
-        if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
-
-        if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
-
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
+        return n;
     }
 
     /**
@@ -264,7 +180,7 @@ public class PostsDao {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setStrict(true);
 
-        qb.setProjectionMap(FEED_COL_AS_MAP);
+        qb.setProjectionMap(FEED_COL_AS_MAP.getProjectionMap());
 
         qb.setTables(FEED_TABLE);
 
@@ -272,6 +188,6 @@ public class PostsDao {
 
         if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
 
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
+        return qb.query(getDb(), proj, sel, selArgs, null, null, ord);
     }
 }

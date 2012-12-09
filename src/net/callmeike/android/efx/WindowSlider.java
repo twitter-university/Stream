@@ -179,7 +179,7 @@ public abstract class WindowSlider {
 
     private void setBounds() {
         activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(viewRect);
-        int x = activity.getActionBar().getHeight(); //
+        //int x = activity.getActionBar().getHeight();
         int oh = Math.round((viewRect.right - viewRect.left) * overhang);
         bounds.set(viewRect.top, viewRect.right - oh);
     }

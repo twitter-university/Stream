@@ -17,23 +17,17 @@ package com.marakana.android.stream.db.dao;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
-import com.marakana.android.stream.db.ColumnDef;
+import com.marakana.android.stream.db.ProjectionMap;
+import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
 import com.marakana.android.stream.db.StreamProvider;
@@ -44,7 +38,7 @@ import com.marakana.android.stream.db.StreamProvider;
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class TagsDao {
+public class TagsDao extends BaseDao {
     private static final String TAG = "TAGS-DAO";
 
     private static final String TABLE = "tags";
@@ -66,48 +60,7 @@ public class TagsDao {
     private static final String DROP_TAGS_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
 
-    private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
-
     private static final String PK_CONSTRAINT = COL_ID + "=";
-
-    private static final Map<String, ColumnDef> COL_MAP;
-    static {
-        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
-        m.put(
-                StreamContract.Tags.Columns.ID,
-                new ColumnDef(COL_ID, ColumnDef.Type.LONG));
-        m.put(
-                StreamContract.Tags.Columns.LINK,
-                new ColumnDef(COL_URI, ColumnDef.Type.STRING));
-        m.put(
-                StreamContract.Tags.Columns.TITLE,
-                new ColumnDef(COL_TITLE, ColumnDef.Type.STRING));
-        m.put(
-                StreamContract.Tags.Columns.DESC,
-                new ColumnDef(COL_DESC, ColumnDef.Type.STRING));
-        m.put(
-                COL_TAGS_ICON,
-                new ColumnDef(COL_TAGS_ICON, ColumnDef.Type.STRING));
-        COL_MAP = Collections.unmodifiableMap(m);
-    }
-
-    private static final Map<String, String> COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-                StreamContract.Tags.Columns.ID,
-                COL_ID + " AS " + StreamContract.Tags.Columns.ID);
-        m.put(
-                StreamContract.Tags.Columns.LINK,
-                COL_URI + " AS " + StreamContract.Tags.Columns.LINK);
-        m.put(
-                StreamContract.Tags.Columns.TITLE,
-                COL_TITLE + " AS " + StreamContract.Tags.Columns.TITLE);
-        m.put(
-                StreamContract.Tags.Columns.DESC,
-                COL_DESC + " AS " + StreamContract.Tags.Columns.DESC);
-        COL_AS_MAP = Collections.unmodifiableMap(m);
-    }
 
     /**
      * @param context
@@ -128,7 +81,6 @@ public class TagsDao {
     }
 
 
-    private final DbHelper dbHelper;
     private final StreamProvider provider;
 
     /**
@@ -136,50 +88,26 @@ public class TagsDao {
      * @param dbHelper
      */
     public TagsDao(StreamProvider provider, DbHelper dbHelper) {
+        super(
+            TAG,
+            dbHelper,
+            TABLE,
+            COL_ID,
+            StreamContract.Posts.Columns.PUB_DATE + " DESC",
+            new ColumnMap.Builder()
+                .addColumn(StreamContract.Tags.Columns.ID, COL_ID, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Tags.Columns.LINK, COL_URI, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Tags.Columns.TITLE, COL_TITLE, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Tags.Columns.DESC, COL_DESC, ColumnMap.Type.STRING)
+                .addColumn(COL_TAGS_ICON, COL_TAGS_ICON, ColumnMap.Type.STRING)
+                .build(),
+            new ProjectionMap.Builder()
+                .addColumn(StreamContract.Tags.Columns.ID, COL_ID)
+                .addColumn(StreamContract.Tags.Columns.LINK, COL_URI)
+                .addColumn(StreamContract.Tags.Columns.TITLE, COL_TITLE)
+                .addColumn(StreamContract.Tags.Columns.DESC, COL_DESC)
+                .build());
         this.provider = provider;
-        this.dbHelper = dbHelper;
-    }
-
-    /**
-     * @param vals
-     * @return pk for inserted row
-     */
-    public long insert(ContentValues vals) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "insert tag: " + vals); }
-        long pk = -1;
-        vals = StreamProvider.translateCols(COL_MAP, vals);
-        try {
-            pk = dbHelper.getDb().insertWithOnConflict(
-               TABLE,
-               null,
-               vals,
-               SQLiteDatabase.CONFLICT_IGNORE);
-        }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
-        return pk;
-    }
-
-    /**
-     * @param proj
-     * @param sel
-     * @param selArgs
-     * @param ord
-     * @param pk
-     * @return cursor
-     */
-    public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
-        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setStrict(true);
-
-        qb.setProjectionMap(COL_AS_MAP);
-
-        qb.setTables(TABLE);
-
-        if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
-
-        if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
-
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
     }
 
     /**
@@ -194,7 +122,7 @@ public class TagsDao {
         String fName = null;
         Cursor c = null;
         try {
-            c = dbHelper.getDb().query(
+            c = getDb().query(
                     TABLE,
                     new String[] { COL_TAGS_ICON },
                     PK_CONSTRAINT + pk,

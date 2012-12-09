@@ -15,24 +15,15 @@
 */
 package com.marakana.android.stream.db.dao;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.marakana.android.stream.BuildConfig;
-import com.marakana.android.stream.db.ColumnDef;
+import com.marakana.android.stream.db.ProjectionMap;
+import com.marakana.android.stream.db.ColumnMap;
 import com.marakana.android.stream.db.DbHelper;
 import com.marakana.android.stream.db.StreamContract;
-import com.marakana.android.stream.db.StreamProvider;
 
 
 /**
@@ -40,7 +31,7 @@ import com.marakana.android.stream.db.StreamProvider;
  * @version $Revision: $
  * @author <a href="mailto:blake.meike@gmail.com">G. Blake Meike</a>
  */
-public class AuthorsDao {
+public class AuthorsDao extends BaseDao {
     private static final String TAG = "AUTHORS-DAO";
 
     static final String TABLE = "authors";
@@ -56,39 +47,6 @@ public class AuthorsDao {
 
     private static final String DROP_TABLE
         = "DROP TABLE IF EXISTS " + TABLE;
-
-    private static final String DEFAULT_SORT = StreamContract.Posts.Columns.PUB_DATE + " DESC";
-    private static final String PK_CONSTRAINT = COL_ID + "=";
-
-    private static final Map<String, ColumnDef> COL_MAP;
-    static {
-        Map<String, ColumnDef> m = new HashMap<String, ColumnDef>();
-        m.put(
-            StreamContract.Authors.Columns.ID,
-            new ColumnDef(COL_ID, ColumnDef.Type.LONG));
-        m.put(
-            StreamContract.Authors.Columns.LINK,
-            new ColumnDef(COL_URI, ColumnDef.Type.STRING));
-        m.put(
-            StreamContract.Authors.Columns.NAME,
-            new ColumnDef(COL_NAME, ColumnDef.Type.STRING));
-        COL_MAP = Collections.unmodifiableMap(m);
-    }
-
-    private static final Map<String, String>  COL_AS_MAP;
-    static {
-        Map<String, String> m = new HashMap<String, String>();
-        m.put(
-            StreamContract.Authors.Columns.ID,
-            COL_ID + " AS " + StreamContract.Authors.Columns.ID);
-        m.put(
-            StreamContract.Authors.Columns.LINK,
-            COL_URI + " AS " + StreamContract.Authors.Columns.LINK);
-        m.put(
-            StreamContract.Authors.Columns.NAME,
-            COL_NAME + " AS " + StreamContract.Authors.Columns.NAME);
-         COL_AS_MAP = Collections.unmodifiableMap(m);
-    }
 
     /**
      * @param context
@@ -108,52 +66,25 @@ public class AuthorsDao {
         db.execSQL(CREATE_TABLE);
     }
 
-    private final DbHelper dbHelper;
-
     /**
      * @param dbHelper
      */
-    public AuthorsDao(DbHelper dbHelper) { this.dbHelper = dbHelper; }
-
-    /**
-     * @param vals
-     * @return pk for inserted row
-     */
-    public long insert(ContentValues vals) {
-        if (BuildConfig.DEBUG) { Log.d(TAG, "insert author: " + vals); }
-        long pk = -1;
-        vals = StreamProvider.translateCols(COL_MAP, vals);
-        try {
-            pk = dbHelper.getDb().insertWithOnConflict(
-               TABLE,
-               null,
-               vals,
-               SQLiteDatabase.CONFLICT_IGNORE);
-        }
-        catch (SQLException e) { Log.w(TAG, "insert failed: ", e); }
-        return pk;
-    }
-
-    /**
-     * @param proj
-     * @param sel
-     * @param selArgs
-     * @param ord
-     * @param pk
-     * @return cursor
-     */
-    public Cursor query(String[] proj, String sel, String[] selArgs, String ord, long pk) {
-        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-        qb.setStrict(true);
-
-        qb.setProjectionMap(COL_AS_MAP);
-
-        qb.setTables(TABLE);
-
-        if (0 <= pk) { qb.appendWhere(PK_CONSTRAINT + pk); }
-
-        if (TextUtils.isEmpty(ord)) { ord = DEFAULT_SORT; }
-
-        return qb.query(dbHelper.getDb(), proj, sel, selArgs, null, null, ord);
+    public AuthorsDao(DbHelper dbHelper) {
+        super(
+            TAG,
+            dbHelper,
+            TABLE,
+            COL_ID,
+            StreamContract.Posts.Columns.PUB_DATE + " DESC",
+            new ColumnMap.Builder()
+                .addColumn(StreamContract.Authors.Columns.ID, COL_ID, ColumnMap.Type.LONG)
+                .addColumn(StreamContract.Authors.Columns.LINK, COL_URI, ColumnMap.Type.STRING)
+                .addColumn(StreamContract.Authors.Columns.NAME, COL_NAME, ColumnMap.Type.STRING)
+                .build(),
+            new ProjectionMap.Builder()
+                .addColumn(StreamContract.Authors.Columns.ID, COL_ID)
+                .addColumn(StreamContract.Authors.Columns.LINK, COL_URI)
+                .addColumn(StreamContract.Authors.Columns.NAME, COL_NAME)
+                .build());
     }
 }
